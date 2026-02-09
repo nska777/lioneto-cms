@@ -1,12 +1,9 @@
 // config/admin.js
-module.exports = ({ env }) => {
-  const secret =
-    env("ADMIN_JWT_SECRET") ||
-    env("JWT_SECRET") ||
-    env("STRAPI_ADMIN_JWT_SECRET");
+export default ({ env }) => {
+  const secret = env("ADMIN_JWT_SECRET");
 
   if (!secret) {
-    throw new Error("ADMIN JWT SECRET IS MISSING AT RUNTIME");
+    throw new Error("ADMIN_JWT_SECRET is missing");
   }
 
   return {
