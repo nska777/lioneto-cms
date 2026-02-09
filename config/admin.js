@@ -1,9 +1,10 @@
-// config/admin.ts
-export default ({ env }) => {
-  const adminSecret = env("ADMIN_JWT_SECRET") || env("JWT_SECRET");
-
-  // (не палим секрет) — только проверка, что он вообще есть
-  console.log("[ADMIN SECRET PRESENT]", !!adminSecret);
+// config/admin.js
+module.exports = ({ env }) => {
+  const adminSecret =
+    env("ADMIN_JWT_SECRET") ||
+    env("JWT_SECRET") ||
+    env("STRAPI_ADMIN_JWT_SECRET") ||
+    env("ADMIN_AUTH_SECRET");
 
   return {
     auth: {
