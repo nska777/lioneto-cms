@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_shared_socials",
+  "info": {
+    "displayName": "social",
+    "icon": "twitter"
+  },
+  "options": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "telegram",
+        "whatsapp",
+        "youtube",
+        "tiktok"
+      ]
+    },
+    "url": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

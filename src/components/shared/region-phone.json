@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_shared_region_phones",
+  "info": {
+    "displayName": "region-phone",
+    "icon": "phone"
+  },
+  "options": {},
+  "attributes": {
+    "region": {
+      "type": "enumeration",
+      "enum": [
+        "uz",
+        "ru"
+      ]
+    },
+    "phone": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

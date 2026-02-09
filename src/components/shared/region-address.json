@@ -1,0 +1,38 @@
+{
+  "collectionName": "components_shared_region_addresses",
+  "info": {
+    "displayName": "region-address"
+  },
+  "options": {},
+  "attributes": {
+    "region": {
+      "type": "enumeration",
+      "enum": [
+        "uz",
+        "ru"
+      ]
+    },
+    "city": {
+      "type": "string"
+    },
+    "addressLine": {
+      "type": "string"
+    },
+    "workTime": {
+      "type": "string"
+    },
+    "mapUrl": {
+      "type": "string"
+    },
+    "city_uz": {
+      "type": "string"
+    },
+    "addressLine_uz": {
+      "type": "string"
+    },
+    "workTime_uz": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}
