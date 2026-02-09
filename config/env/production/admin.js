@@ -1,14 +1,17 @@
-// config/admin.js
+// config/env/production/admin.js
 module.exports = ({ env }) => {
-  const adminSecret =
+  const secret =
     env("ADMIN_JWT_SECRET") ||
     env("JWT_SECRET") ||
-    env("STRAPI_ADMIN_JWT_SECRET") ||
-    env("ADMIN_AUTH_SECRET");
+    env("STRAPI_ADMIN_JWT_SECRET");
+
+  if (!secret) {
+    throw new Error("ADMIN JWT SECRET IS MISSING AT RUNTIME");
+  }
 
   return {
     auth: {
-      secret: adminSecret,
+      secret,
     },
     apiToken: {
       salt: env("API_TOKEN_SALT"),
@@ -20,10 +23,6 @@ module.exports = ({ env }) => {
     },
     secrets: {
       encryptionKey: env("ENCRYPTION_KEY"),
-    },
-    flags: {
-      nps: env.bool("FLAG_NPS", true),
-      promoteEE: env.bool("FLAG_PROMOTE_EE", true),
     },
   };
 };
