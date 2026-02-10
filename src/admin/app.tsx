@@ -34,14 +34,14 @@ export default {
   register(app: any) {
     app.addMenuLink({
       to: "/plugins/price-csv",
-      icon: MoneyIcon, // ✅ ВАЖНО: компонент, не строка
+      icon: MoneyIcon, // ВАЖНО: компонент, не строка
       intlLabel: {
         id: "price-csv.menu",
         defaultMessage: "Prices CSV",
       },
       Component: async () => {
         const module = await import("./pages/price-csv");
-        return module.default; // ✅ ВАЖНО: возвращаем default компонент
+        return module.default; // ВАЖНО: возвращаем default компонент
       },
       permissions: [],
     });

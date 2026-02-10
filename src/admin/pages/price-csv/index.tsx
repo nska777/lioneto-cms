@@ -5,12 +5,12 @@ import { useNotification } from "@strapi/admin/strapi-admin";
 const PriceCsvPage = () => {
   const notification = useNotification();
 
-  // 📤 ЭКСПОРТ — ПРОСТО ОТКРЫВАЕМ URL
+  //  ЭКСПОРТ — ПРОСТО ОТКРЫВАЕМ URL
   const exportCSV = () => {
     window.open("/api/price-export", "_blank");
   };
 
-  // 📥 ИМПОРТ — через POST
+  //  ИМПОРТ — через POST
   const importCSV = async (file?: File) => {
     if (!file) return;
 
@@ -70,7 +70,7 @@ const PriceCsvPage = () => {
             onChange={(e) => importCSV(e.target.files?.[0])}
           />
           <Button as="span" variant="secondary">
-            📥 Загрузить цены (CSV)
+            Загрузить цены (CSV)
           </Button>
         </label>
         {/* ⬆⬆ ДО СЮДА ⬆⬆ */}
