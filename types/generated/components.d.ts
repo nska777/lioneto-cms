@@ -1,5 +1,23 @@
 import type { Schema, Struct } from '@strapi/strapi';
 
+export interface ProductVariant extends Struct.ComponentSchema {
+  collectionName: 'components_product_variants';
+  info: {
+    displayName: 'variant';
+  };
+  attributes: {
+    group: Schema.Attribute.String;
+    image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    priceDeltaRUB: Schema.Attribute.Integer;
+    priceDeltaUZS: Schema.Attribute.Integer;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    type: Schema.Attribute.Enumeration<['color', 'mechanism', 'option']>;
+    variantKey: Schema.Attribute.Enumeration<
+      ['white', 'cappuccino', 'simple', 'lift']
+    >;
+  };
+}
+
 export interface SharedLink extends Struct.ComponentSchema {
   collectionName: 'components_shared_links';
   info: {
@@ -60,6 +78,7 @@ export interface SharedSocial extends Struct.ComponentSchema {
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
+      'product.variant': ProductVariant;
       'shared.link': SharedLink;
       'shared.region-address': SharedRegionAddress;
       'shared.region-phone': SharedRegionPhone;

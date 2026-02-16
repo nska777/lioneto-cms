@@ -1,0 +1,51 @@
+{
+  "collectionName": "components_product_variants",
+  "info": {
+    "displayName": "variant"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "color",
+        "mechanism",
+        "option"
+      ]
+    },
+    "group": {
+      "type": "string",
+      "required": false
+    },
+    "priceDeltaUZS": {
+      "type": "integer"
+    },
+    "priceDeltaRUB": {
+      "type": "integer"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "variantKey": {
+      "type": "enumeration",
+      "enum": [
+        "white",
+        "cappuccino",
+        "simple",
+        "lift"
+      ]
+    }
+  },
+  "config": {}
+}

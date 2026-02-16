@@ -1,8 +1,8 @@
 import path from "path";
 
 export default ({ env }) => {
-  const client =
-    env("NODE_ENV") === "production" ? "postgres" : "sqlite";
+  // ✅ выбираем БД явно
+  const client = env("DATABASE_CLIENT", "sqlite"); // "postgres" | "sqlite"
 
   const connections = {
     postgres: {
@@ -12,7 +12,7 @@ export default ({ env }) => {
         database: env("DATABASE_NAME"),
         user: env("DATABASE_USERNAME"),
         password: env("DATABASE_PASSWORD"),
-        ssl: env.bool("DATABASE_SSL", true)
+        ssl: env.bool("DATABASE_SSL", false)
           ? { rejectUnauthorized: false }
           : false,
       },
@@ -32,10 +32,5 @@ export default ({ env }) => {
     },
   };
 
-  return {
-    connection: {
-      client,
-      ...connections[client],
-    },
-  };
+  return { connection: { client, ...connections[client] } };
 };

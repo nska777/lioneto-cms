@@ -500,68 +500,82 @@ export interface ApiNewsItemNewsItem extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiPriceEntryPriceEntry extends Struct.CollectionTypeSchema {
-  collectionName: 'price_entries';
+export interface ApiProductProduct extends Struct.CollectionTypeSchema {
+  collectionName: 'products';
   info: {
-    displayName: 'price-entry';
-    pluralName: 'price-entries';
-    singularName: 'price-entry';
+    displayName: 'product';
+    pluralName: 'products';
+    singularName: 'product';
   };
   options: {
-    draftAndPublish: false;
+    draftAndPublish: true;
   };
   attributes: {
-    cardImage: Schema.Attribute.Media<'images' | 'files'>;
-    collectionBadge: Schema.Attribute.String;
+    brand: Schema.Attribute.Enumeration<
+      ['scandy', 'amber', 'salvador', 'buongiorno', 'elizabeth', 'pitti']
+    >;
+    cat: Schema.Attribute.Enumeration<
+      [
+        'fasadi',
+        'komody',
+        'krovati',
+        'plintusy',
+        'polki',
+        'shkafy',
+        'stellaji',
+        'stoli',
+        'tumby',
+        'veshalki',
+        'vitrini',
+        'zerkala',
+        'pufi',
+        'bedrooms',
+        'living',
+        'youth',
+      ]
+    > &
+      Schema.Attribute.Required;
+    collection: Schema.Attribute.String;
+    collectionBadge: Schema.Attribute.Enumeration<
+      [
+        '\u0425\u0438\u0442 \u043F\u0440\u043E\u0434\u0430\u0436',
+        '\u041B\u0443\u0447\u0448\u0430\u044F \u0446\u0435\u043D\u0430',
+        '\u0421\u0443\u043F\u0435\u0440 \u0430\u043A\u0446\u0438\u044F',
+        '\u0420\u0430\u0441\u043F\u0440\u043E\u0434\u0430\u0436\u0430',
+        '\u0422\u043E\u043B\u044C\u043A\u043E \u0441\u0435\u0433\u043E\u0434\u043D\u044F ',
+        '\u0423\u0441\u043F\u0435\u0439\u0442\u0435 \u043A\u0443\u043F\u0438\u0442\u044C',
+      ]
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    hasDiscount: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    gallery: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::price-entry.price-entry'
+      'api::product.product'
     > &
       Schema.Attribute.Private;
-    oldPriceRUB: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      >;
-    oldPriceUZS: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      >;
-    priceRUB: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      >;
-    priceUZS: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      >;
-    productId: Schema.Attribute.String &
+    media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    module: Schema.Attribute.String;
+    oldPriceRUB: Schema.Attribute.Integer;
+    oldPriceUZS: Schema.Attribute.Integer;
+    priceRUB: Schema.Attribute.Integer;
+    priceUZS: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'> &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
-    publishedAt: Schema.Attribute.DateTime;
-    title: Schema.Attribute.String;
+    sortOrder: Schema.Attribute.Integer;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    variants: Schema.Attribute.Component<'product.variant', true>;
   };
 }
 
@@ -1077,7 +1091,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::global.global': ApiGlobalGlobal;
       'api::news-item.news-item': ApiNewsItemNewsItem;
-      'api::price-entry.price-entry': ApiPriceEntryPriceEntry;
+      'api::product.product': ApiProductProduct;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
