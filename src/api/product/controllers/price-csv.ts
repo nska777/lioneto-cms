@@ -1,8 +1,8 @@
+// src/api/product/controllers/price-csv.ts
 import fs from "node:fs";
 
 const UID = "api::product.product";
 
-// ✅ какие колонки будут в CSV (как ты просил — по полям продукта)
 const CSV_HEADER = [
   "slug",
   "title",
@@ -27,17 +27,12 @@ function esc(v: any) {
 
 function toCsv(rows: any[]) {
   const lines = [CSV_HEADER.join(",")];
-  for (const r of rows) {
-    lines.push(CSV_HEADER.map((k) => esc((r as any)[k])).join(","));
-  }
-  // ✅ BOM чтобы Excel нормально открывал кириллицу
-  return "\uFEFF" + lines.join("\n");
+  for (const r of rows) lines.push(CSV_HEADER.map((k) => esc(r?.[k])).join(","));
+  return "\uFEFF" + lines.join("\n"); // BOM для Excel
 }
 
-// ✅ нормальный CSV-парсер (понимает кавычки и запятые внутри)
 function parseCsv(text: string) {
   const src = String(text ?? "").replace(/^\uFEFF/, "");
-
   const out: Record<string, string>[] = [];
 
   let cur = "";
@@ -50,6 +45,11 @@ function parseCsv(text: string) {
     cur = "";
   };
   const pushRow = () => {
+    // игнорим совсем пустые строки
+    if (row.length === 1 && String(row[0] ?? "").trim() === "") {
+      row = [];
+      return;
+    }
     rows.push(row);
     row = [];
   };
@@ -99,11 +99,10 @@ function parseCsv(text: string) {
     if (!r || !r.length) continue;
 
     const obj: Record<string, string> = {};
-    header.forEach((h, idx) => {
-      obj[h] = String(r[idx] ?? "").trim();
-    });
+    header.forEach((h, idx) => (obj[h] = String(r[idx] ?? "").trim()));
 
-    if (obj.slug) out.push(obj);
+    const slug = String(obj.slug ?? "").trim();
+    if (slug) out.push(obj);
   }
 
   return out;
@@ -134,75 +133,86 @@ const toBoolOrNull = (v: any) => {
   return null;
 };
 
-async function findProductBySlug(slug: string) {
-  const found = await strapi.db.query(UID).findOne({
+async function findAllBySlug(slug: string) {
+  const list = await strapi.db.query(UID).findMany({
     where: { slug },
     select: ["id", "slug"],
+    orderBy: { id: "desc" },
+    limit: 1000,
   });
-  return found ?? null;
+  return Array.isArray(list) ? list : [];
+}
+
+async function deleteByIds(ids: Array<number | string>) {
+  for (const id of ids) {
+    try {
+      await strapi.db.query(UID).delete({ where: { id } });
+    } catch (e) {
+      strapi.log.warn(`[CSV] failed delete id=${id}: ${String(e)}`);
+    }
+  }
 }
 
 export default {
-// GET /price-export
-async export(ctx: any) {
-  const products = await strapi.db.query(UID).findMany({
-    select: [
-      "id", // ✅ добавили
-      "slug",
-      "title",
-      "isActive",
-      "brand",
-      "cat",
-      "module",
-      "collection",
-      "collectionBadge",
-      "priceUZS",
-      "priceRUB",
-      "oldPriceUZS",
-      "oldPriceRUB",
-      "sortOrder",
-      "publishedAt", // ✅ добавили
-    ],
-    orderBy: { id: "asc" },
-    limit: 10000,
-  });
+  // GET /price-export
+  async export(ctx: any) {
+    const products = await strapi.db.query(UID).findMany({
+      select: [
+        "id",
+        "slug",
+        "title",
+        "isActive",
+        "brand",
+        "cat",
+        "module",
+        "collection",
+        "collectionBadge",
+        "priceUZS",
+        "priceRUB",
+        "oldPriceUZS",
+        "oldPriceRUB",
+        "sortOrder",
+        "publishedAt",
+      ],
+      orderBy: { id: "asc" },
+      limit: 100000,
+    });
 
-  // ✅ дедуп по slug: берём самый свежий (по id)
-  const map = new Map<string, any>();
-  for (const p of products ?? []) {
-    const slug = String(p.slug ?? "").trim();
-    if (!slug) continue;
+    // дедуп по slug: берём самый свежий (по id)
+    const map = new Map<string, any>();
+    for (const p of products ?? []) {
+      const slug = String(p?.slug ?? "").trim();
+      if (!slug) continue;
+      const prev = map.get(slug);
+      if (!prev || (p.id ?? 0) > (prev.id ?? 0)) map.set(slug, p);
+    }
 
-    const prev = map.get(slug);
-    if (!prev || (p.id ?? 0) > (prev.id ?? 0)) map.set(slug, p);
-  }
+    const deduped = Array.from(map.values()).sort((a, b) =>
+      String(a.slug ?? "").localeCompare(String(b.slug ?? "")),
+    );
 
-  const deduped = Array.from(map.values()).sort((a, b) =>
-    String(a.slug ?? "").localeCompare(String(b.slug ?? "")),
-  );
+    const rows = deduped.map((p: any) => ({
+      slug: p.slug ?? "",
+      title: p.title ?? "",
+      isActive: typeof p.isActive === "boolean" ? String(p.isActive) : "",
+      brand: p.brand ?? "",
+      cat: p.cat ?? "",
+      module: p.module ?? "",
+      collection: p.collection ?? "",
+      collectionBadge: p.collectionBadge ?? "",
+      priceUZS: p.priceUZS ?? "",
+      priceRUB: p.priceRUB ?? "",
+      oldPriceUZS: p.oldPriceUZS ?? "",
+      oldPriceRUB: p.oldPriceRUB ?? "",
+      sortOrder: p.sortOrder ?? "",
+    }));
 
-  const rows = deduped.map((p: any) => ({
-    slug: p.slug ?? "",
-    title: p.title ?? "",
-    isActive: typeof p.isActive === "boolean" ? String(p.isActive) : "",
-    brand: p.brand ?? "",
-    cat: p.cat ?? "",
-    module: p.module ?? "",
-    collection: p.collection ?? "",
-    collectionBadge: p.collectionBadge ?? "",
-    priceUZS: p.priceUZS ?? "",
-    priceRUB: p.priceRUB ?? "",
-    oldPriceUZS: p.oldPriceUZS ?? "",
-    oldPriceRUB: p.oldPriceRUB ?? "",
-    sortOrder: p.sortOrder ?? "",
-  }));
+    const csvData = toCsv(rows);
 
-  const csvData = toCsv(rows);
-
-  ctx.set("Content-Type", "text/csv; charset=utf-8");
-  ctx.set("Content-Disposition", 'attachment; filename="products.csv"');
-  ctx.body = csvData;
-},
+    ctx.set("Content-Type", "text/csv; charset=utf-8");
+    ctx.set("Content-Disposition", 'attachment; filename="products.csv"');
+    ctx.body = csvData;
+  },
 
   // POST /price-import
   async import(ctx: any) {
@@ -221,6 +231,7 @@ async export(ctx: any) {
     let updated = 0;
     let created = 0;
     let skipped = 0;
+    let dedupDeleted = 0;
 
     for (const row of rows) {
       const slug = String(row.slug ?? "").trim();
@@ -270,35 +281,41 @@ async export(ctx: any) {
       const so = toNumOrNull(row.sortOrder);
       if (so !== null) data.sortOrder = so;
 
-      // если нечего обновлять — пропускаем
       if (Object.keys(data).length === 0) {
         skipped++;
         continue;
       }
 
-      // ✅ publish (если Draft/Publish включён)
+      // publish (если Draft/Publish включён)
       data.publishedAt = new Date();
 
-      const existing = await findProductBySlug(slug);
+      // ✅ главное: обновляем по slug, и чистим дубли
+      const existingList = await findAllBySlug(slug);
 
-      if (existing?.id) {
+      if (existingList.length > 0) {
+        const keep = existingList[0]; // самый свежий (id desc)
+        const dupIds = existingList.slice(1).map((x) => x.id);
+        if (dupIds.length) {
+          await deleteByIds(dupIds);
+          dedupDeleted += dupIds.length;
+        }
+
         await strapi.db.query(UID).update({
-          where: { id: existing.id },
+          where: { id: keep.id },
           data,
         });
         updated++;
       } else {
         await strapi.db.query(UID).create({
-          data: {
-            slug,
-            ...data,
-          },
+          data: { slug, ...data },
         });
         created++;
       }
     }
 
-    strapi.log.info(`[CSV] updated=${updated} created=${created} skipped=${skipped}`);
-    ctx.send({ ok: true, updated, created, skipped });
+    strapi.log.info(
+      `[CSV] updated=${updated} created=${created} skipped=${skipped} dedupDeleted=${dedupDeleted}`,
+    );
+    ctx.send({ ok: true, updated, created, skipped, dedupDeleted });
   },
 };
