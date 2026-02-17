@@ -12,7 +12,8 @@
     "start": "strapi start",
     "strapi": "strapi",
     "upgrade": "npx @strapi/upgrade latest",
-    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+    "upgrade:dry": "npx @strapi/upgrade latest --dry",
+    "postinstall": "bash scripts/fix-strapi-admin-link.sh || true"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "5.33.4",
