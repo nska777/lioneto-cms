@@ -1,9 +1,8 @@
-// src/api/product/controllers/price-csv.ts
 import fs from "node:fs";
 
 const UID = "api::product.product";
 
-// ✅ какие колонки будут в CSV
+// какие колонки будут в CSV
 const CSV_HEADER = [
   "slug",
   "title",
@@ -48,13 +47,20 @@ const CAT_ENUM = new Set([
   "youth",
 ]);
 
-// ⚠️ ВАЖНО: в enum есть "Только сегодня " с пробелом в конце — оставляем как есть.
+// Алиасы (твои CSV-значения -> значения схемы)
+const CAT_ALIASES: Record<string, string> = {
+  tumbi: "tumby",
+  tumba: "tumby",
+  "tumby-tv": "tumby", // если у тебя в CSV так встречается
+  dekor: "fasadi", // ⚠️ ВАЖНО: если "dekor" это не категория, а модуль — лучше исправить CSV. Но так хоть не будет Draft.
+};
+
 const BADGE_ENUM = [
   "Хит продаж",
   "Лучшая цена",
   "Супер акция",
   "Распродажа",
-  "Только сегодня ",
+  "Только сегодня ", // да, с пробелом в конце
   "Успейте купить",
 ];
 
@@ -69,11 +75,9 @@ function toCsv(rows: any[]) {
   for (const r of rows) {
     lines.push(CSV_HEADER.map((k) => esc((r as any)[k])).join(","));
   }
-  // ✅ BOM чтобы Excel нормально открывал кириллицу
   return "\uFEFF" + lines.join("\n");
 }
 
-// ✅ CSV-парсер (кавычки/запятые внутри)
 function parseCsv(text: string) {
   const src = String(text ?? "").replace(/^\uFEFF/, "");
   const out: Record<string, string>[] = [];
@@ -147,13 +151,6 @@ function parseCsv(text: string) {
   return out;
 }
 
-/**
- * Strapi v4/v5 кладёт файл по-разному.
- * Поддерживаем самые частые варианты:
- *  - ctx.request.files.file
- *  - ctx.request.files.files.file
- *  - массивы
- */
 function getUploadedFile(ctx: any) {
   const f1 = ctx.request?.files?.file;
   const f2 = ctx.request?.files?.files?.file;
@@ -181,12 +178,11 @@ const toBoolOrNull = (v: any) => {
   return null;
 };
 
-// ✅ нормализация enum: brand/cat (lower+trim)
 function normLower(v: any) {
   return String(v ?? "").trim().toLowerCase();
 }
 
-// ✅ badge: матчим по trim() к допустимым, но сохраняем оригинальную строку из enum (включая пробелы)
+// badge: матчим по trim() к допустимым, но возвращаем каноническое значение (включая пробелы)
 function normalizeBadge(v: any) {
   const s = String(v ?? "").trim();
   if (!s) return null;
@@ -194,40 +190,22 @@ function normalizeBadge(v: any) {
   return hit ?? null;
 }
 
-// ✅ найти ВСЕ записи по slug (если вдруг дубли уже есть)
+function normalizeCat(v: any) {
+  const raw = normLower(v);
+  if (!raw) return null;
+  const aliased = CAT_ALIASES[raw] ?? raw;
+  if (CAT_ENUM.has(aliased)) return aliased;
+  return null;
+}
+
 async function findProductsBySlug(slug: string) {
   const list = await strapi.db.query(UID).findMany({
     where: { slug },
-    select: ["id", "slug", "documentId"],
-    orderBy: { id: "desc" }, // самая свежая первая
+    select: ["id", "slug", "documentId", "publishedAt"],
+    orderBy: { id: "desc" },
     limit: 50,
   });
   return Array.isArray(list) ? list : [];
-}
-
-// ✅ авто-repair document-layer чтобы CM не падал в 0
-async function repairDocumentLayer() {
-  const all = await strapi.db.query(UID).findMany({
-    select: ["id", "documentId", "title"],
-    orderBy: { id: "asc" },
-    limit: 20000,
-  });
-
-  let repaired = 0;
-  for (const p of all ?? []) {
-    const documentId = (p as any).documentId;
-    if (!documentId) continue;
-
-    await strapi.documents(UID).update({
-      documentId,
-      data: { title: (p as any).title ?? "" }, // touch
-    });
-
-    repaired++;
-  }
-
-  strapi.log.info(`[CSV] document-layer repaired=${repaired}`);
-  return repaired;
 }
 
 export default {
@@ -254,12 +232,10 @@ export default {
       limit: 10000,
     });
 
-    // ✅ дедуп по slug: берём самый свежий (по id)
     const map = new Map<string, any>();
     for (const p of products ?? []) {
       const slug = String(p.slug ?? "").trim();
       if (!slug) continue;
-
       const prev = map.get(slug);
       if (!prev || (p.id ?? 0) > (prev.id ?? 0)) map.set(slug, p);
     }
@@ -296,14 +272,11 @@ export default {
     const file = getUploadedFile(ctx);
     if (!file) return ctx.badRequest("CSV file is required");
 
-    const filePath = (file as any).filepath || (file as any).path; // v5/v4
+    const filePath = file.filepath || file.path;
     if (!filePath) return ctx.badRequest("Uploaded file path not found");
 
     const text = fs.readFileSync(filePath, "utf-8");
     const rows = parseCsv(text);
-
-    strapi.log.info("[CSV] rows=" + rows.length);
-    strapi.log.info("[CSV] first=" + JSON.stringify(rows[0] ?? {}));
 
     let updated = 0;
     let created = 0;
@@ -320,11 +293,9 @@ export default {
 
       const data: any = {};
 
-      // strings
       const title = String(row.title ?? "").trim();
       if (title) data.title = title;
 
-      // enums: brand/cat/badge
       const brandRaw = normLower(row.brand);
       if (brandRaw) {
         if (BRAND_ENUM.has(brandRaw)) data.brand = brandRaw;
@@ -334,13 +305,11 @@ export default {
         }
       }
 
-      const catRaw = normLower(row.cat);
-      if (catRaw) {
-        if (CAT_ENUM.has(catRaw)) data.cat = catRaw;
-        else {
-          invalid++;
-          strapi.log.warn(`[CSV] invalid cat="${row.cat}" slug=${slug}`);
-        }
+      const catNorm = normalizeCat(row.cat);
+      if (catNorm) data.cat = catNorm;
+      else if (String(row.cat ?? "").trim()) {
+        invalid++;
+        strapi.log.warn(`[CSV] invalid cat="${row.cat}" slug=${slug}`);
       }
 
       const module = String(row.module ?? "").trim();
@@ -358,11 +327,9 @@ export default {
         );
       }
 
-      // boolean
       const b = toBoolOrNull(row.isActive);
       if (b !== null) data.isActive = b;
 
-      // numbers
       const pU = toNumOrNull(row.priceUZS);
       if (pU !== null) data.priceUZS = pU;
 
@@ -378,50 +345,47 @@ export default {
       const so = toNumOrNull(row.sortOrder);
       if (so !== null) data.sortOrder = so;
 
-      // если нечего обновлять — пропускаем
       if (Object.keys(data).length === 0) {
         skipped++;
         continue;
       }
 
-      // ✅ publish/unpublish только если isActive явно пришёл
+      // publish/unpublish если isActive пришёл
       if (b === true) data.publishedAt = new Date();
       if (b === false) data.publishedAt = null;
 
       const existingAll = await findProductsBySlug(slug);
 
       if (existingAll.length) {
-        const keep = existingAll[0]; // самый свежий (id desc)
+        const keep = existingAll[0];
         const extras = existingAll.slice(1);
 
-        // 1) update через documents если есть documentId
-        if ((keep as any).documentId) {
+        // ✅ обновляем через documents layer, чтобы CM и API были консистентны
+        if (keep.documentId) {
           await strapi.documents(UID).update({
-            documentId: (keep as any).documentId,
-            data,
+            documentId: keep.documentId,
+            data: { slug, ...data, locale: "en" },
           });
         } else {
-          // fallback
+          // fallback (на всякий)
           await strapi.db.query(UID).update({
-            where: { id: (keep as any).id },
-            data,
+            where: { id: keep.id },
+            data: { slug, ...data },
           });
         }
         updated++;
 
-        // 2) delete дублей
+        // удаляем дубли
         for (const ex of extras) {
-          if ((ex as any).documentId) {
-            await strapi.documents(UID).delete({
-              documentId: (ex as any).documentId,
-            });
+          if (ex.documentId) {
+            await strapi.documents(UID).delete({ documentId: ex.documentId });
           } else {
-            await strapi.db.query(UID).delete({ where: { id: (ex as any).id } });
+            await strapi.db.query(UID).delete({ where: { id: ex.id } });
           }
           dedupRemoved++;
         }
       } else {
-        // ✅ create через documents (чтобы CM видел)
+        // ✅ создаём ТОЛЬКО через documents layer
         await strapi.documents(UID).create({
           data: {
             slug,
@@ -433,21 +397,6 @@ export default {
       }
     }
 
-    // ✅ после импорта делаем repair document-layer (на всякий случай)
-    const repaired = await repairDocumentLayer();
-
-    strapi.log.info(
-      `[CSV] updated=${updated} created=${created} skipped=${skipped} invalid=${invalid} dedupRemoved=${dedupRemoved} repaired=${repaired}`,
-    );
-
-    ctx.send({
-      ok: true,
-      updated,
-      created,
-      skipped,
-      invalid,
-      dedupRemoved,
-      repaired,
-    });
+    ctx.send({ ok: true, updated, created, skipped, invalid, dedupRemoved });
   },
 };
