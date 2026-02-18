@@ -1,10 +1,11 @@
 // scripts/import-products.mjs
 // Node 18+
+//
 // Usage:
 //   STRAPI_URL="https://lioneto-cms.ru" STRAPI_TOKEN="xxx" node scripts/import-products.mjs --file ./products.csv --mode upsert
 //   STRAPI_URL="https://lioneto-cms.ru" STRAPI_TOKEN="xxx" node scripts/import-products.mjs --file ./products.csv --mode overwrite
 //
-// CSV columns (header):
+// CSV header:
 // slug,title,isActive,brand,cat,module,collection,collectionBadge,priceUZS,priceRUB,oldPriceUZS,oldPriceRUB,sortOrder
 
 import fs from "node:fs";
@@ -18,6 +19,7 @@ function arg(name) {
 
 const FILE = arg("--file");
 const MODE = (arg("--mode") || "upsert").toLowerCase(); // upsert | overwrite
+const LOCALE = (arg("--locale") || "en").toLowerCase(); // default en
 
 const STRAPI_URL = process.env.STRAPI_URL?.replace(/\/$/, "");
 const STRAPI_TOKEN = process.env.STRAPI_TOKEN;
@@ -38,7 +40,9 @@ if (!["upsert", "overwrite"].includes(MODE)) {
 function toInt(v) {
   const s = String(v ?? "").trim();
   if (!s) return null;
-  const n = Number(s.replace(/\s+/g, "").replace(/,/g, "."));
+  // поддержка "5 590 000" и "5,590,000" и "5590000"
+  const cleaned = s.replace(/\s+/g, "").replace(/,/g, ".");
+  const n = Number(cleaned);
   if (!Number.isFinite(n)) return null;
   return Math.trunc(n);
 }
@@ -54,7 +58,7 @@ function normStr(v) {
 }
 
 function parseCSV(text) {
-  // простая CSV-парсерка (с поддержкой кавычек)
+  // простая CSV-парсерка (поддержка кавычек), разделители: , ; \t
   const rows = [];
   let row = [];
   let cur = "";
@@ -82,7 +86,6 @@ function parseCSV(text) {
       if (ch === "\r" && next === "\n") i++;
       row.push(cur);
       cur = "";
-      // пропускаем пустые строки
       if (row.some((x) => String(x).trim() !== "")) rows.push(row);
       row = [];
       continue;
@@ -115,8 +118,16 @@ async function apiFetch(url, options = {}) {
   return json;
 }
 
+function withLocale(url) {
+  const u = new URL(url);
+  // Strapi v5 i18n: locale задаём через query (это ключевой фикс)
+  u.searchParams.set("locale", LOCALE);
+  return u.toString();
+}
+
 async function findBySlug(slug) {
   const u = new URL(`${STRAPI_URL}/api/products`);
+  u.searchParams.set("locale", LOCALE);
   u.searchParams.set("filters[slug][$eq]", slug);
   u.searchParams.set("pagination[pageSize]", "1");
   const json = await apiFetch(u.toString(), { method: "GET" });
@@ -125,9 +136,8 @@ async function findBySlug(slug) {
 }
 
 async function createProduct(fields) {
-  // Strapi v5: body { data: {...} }
   const body = { data: fields };
-  const json = await apiFetch(`${STRAPI_URL}/api/products`, {
+  const json = await apiFetch(withLocale(`${STRAPI_URL}/api/products`), {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -136,7 +146,7 @@ async function createProduct(fields) {
 
 async function updateProduct(id, fields) {
   const body = { data: fields };
-  const json = await apiFetch(`${STRAPI_URL}/api/products/${id}`, {
+  const json = await apiFetch(withLocale(`${STRAPI_URL}/api/products/${id}`), {
     method: "PUT",
     body: JSON.stringify(body),
   });
@@ -144,21 +154,26 @@ async function updateProduct(id, fields) {
 }
 
 async function deleteProduct(id) {
-  await apiFetch(`${STRAPI_URL}/api/products/${id}`, { method: "DELETE" });
+  await apiFetch(withLocale(`${STRAPI_URL}/api/products/${id}`), {
+    method: "DELETE",
+  });
 }
 
 async function listAllProducts() {
-  // тянем все slug/id, чтобы сделать overwrite
   const pageSize = 200;
   let page = 1;
   let all = [];
+
   while (true) {
     const u = new URL(`${STRAPI_URL}/api/products`);
+    u.searchParams.set("locale", LOCALE);
     u.searchParams.set("pagination[page]", String(page));
     u.searchParams.set("pagination[pageSize]", String(pageSize));
+
     const json = await apiFetch(u.toString(), { method: "GET" });
     const data = Array.isArray(json?.data) ? json.data : [];
     all.push(...data);
+
     const total = json?.meta?.pagination?.total ?? all.length;
     if (all.length >= total) break;
     page++;
@@ -191,14 +206,9 @@ function mapRowToFields(h, row) {
     oldPriceUZS: toInt(get("oldPriceUZS")),
     oldPriceRUB: toInt(get("oldPriceRUB")),
     sortOrder: toInt(get("sortOrder")),
-
-    // ВАЖНО: для админки/CM — пусть Strapi сам ведёт локаль, но если i18n включен и default locale = en,
-    // то эта строка помогает не "потеряться" после импорта.
-    locale: "en",
   };
 
-  // Публикация: если Draft&Publish включён, выставим publishedAt.
-  // (Если не включён — Strapi просто проигнорит поле.)
+  // Draft&Publish: управляем publishedAt
   if (fields.isActive) fields.publishedAt = new Date().toISOString();
   else fields.publishedAt = null;
 
@@ -212,7 +222,10 @@ async function main() {
   const rows = parseCSV(text);
   if (!rows.length) throw new Error("Empty CSV");
 
-  const header = rows[0].map((s) => String(s).trim());
+  // BOM fix в header (важно для Excel/Google Sheets)
+  const header = rows[0].map((s) =>
+    String(s).trim().replace(/^\uFEFF/, ""),
+  );
   const idx = {};
   header.forEach((k, i) => (idx[k] = i));
 
@@ -223,6 +236,7 @@ async function main() {
 
   console.log(`✅ CSV rows: ${rows.length - 1}`);
   console.log(`✅ Mode: ${MODE}`);
+  console.log(`✅ Locale: ${LOCALE}`);
 
   const seenSlugs = new Set();
   let created = 0,
@@ -249,14 +263,12 @@ async function main() {
       if (existing?.id) {
         await updateProduct(existing.id, fields);
         updated++;
-        if ((updated + created) % 25 === 0)
-          console.log(`...progress: created ${created}, updated ${updated}`);
       } else {
         await createProduct(fields);
         created++;
-        if ((updated + created) % 25 === 0)
-          console.log(`...progress: created ${created}, updated ${updated}`);
       }
+      if ((updated + created) % 25 === 0)
+        console.log(`...progress: created ${created}, updated ${updated}`);
     } catch (e) {
       failed++;
       console.error(`❌ ${slug}: ${e.message}`);
@@ -264,11 +276,11 @@ async function main() {
   }
 
   if (MODE === "overwrite") {
-    console.log("🧹 Overwrite: deleting entries not in CSV...");
+    console.log("🧹 Overwrite: deleting entries not in CSV (only in this locale)...");
     const all = await listAllProducts();
     let del = 0;
     for (const item of all) {
-      const s = item?.slug ?? item?.attributes?.slug; // на всякий
+      const s = item?.slug ?? item?.attributes?.slug;
       const id = item?.id;
       if (!id || !s) continue;
       if (!seenSlugs.has(String(s))) {
