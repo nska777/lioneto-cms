@@ -1,3 +1,4 @@
+// src/api/product/controllers/price-csv.ts
 import fs from "node:fs";
 
 const UID = "api::product.product";
@@ -230,7 +231,7 @@ async function repairDocumentLayer() {
 }
 
 export default {
-  // GET /price-export
+  // GET /product-export
   async export(ctx: any) {
     const products = await strapi.db.query(UID).findMany({
       select: [
@@ -290,12 +291,12 @@ export default {
     ctx.body = csvData;
   },
 
-  // POST /price-import
+  // POST /product-import
   async import(ctx: any) {
     const file = getUploadedFile(ctx);
     if (!file) return ctx.badRequest("CSV file is required");
 
-    const filePath = file.filepath || file.path; // v5/v4
+    const filePath = (file as any).filepath || (file as any).path; // v5/v4
     if (!filePath) return ctx.badRequest("Uploaded file path not found");
 
     const text = fs.readFileSync(filePath, "utf-8");
@@ -393,57 +394,60 @@ export default {
         const keep = existingAll[0]; // самый свежий (id desc)
         const extras = existingAll.slice(1);
 
-             // ✅ ВАЖНО: CM видит только то, что прошло через documents layer
-      const existingAll = await findProductsBySlug(slug);
-
-      if (existingAll.length) {
-        const keep = existingAll[0]; // самый свежий (id desc)
-        const extras = existingAll.slice(1);
-
-        // 1) обновляем основной — через documents (если есть documentId)
-        if (keep.documentId) {
+        // 1) update через documents если есть documentId
+        if ((keep as any).documentId) {
           await strapi.documents(UID).update({
-            documentId: keep.documentId,
+            documentId: (keep as any).documentId,
             data,
           });
         } else {
-          // fallback (на всякий случай)
+          // fallback
           await strapi.db.query(UID).update({
-            where: { id: keep.id },
+            where: { id: (keep as any).id },
             data,
           });
         }
         updated++;
 
-        // 2) удаляем дубли
+        // 2) delete дублей
         for (const ex of extras) {
-          if (ex.documentId) {
-            await strapi.documents(UID).delete({ documentId: ex.documentId });
+          if ((ex as any).documentId) {
+            await strapi.documents(UID).delete({
+              documentId: (ex as any).documentId,
+            });
           } else {
-            await strapi.db.query(UID).delete({ where: { id: ex.id } });
+            await strapi.db.query(UID).delete({ where: { id: (ex as any).id } });
           }
           dedupRemoved++;
         }
       } else {
-        // ✅ создаём новый — ТОЛЬКО через documents
+        // ✅ create через documents (чтобы CM видел)
         await strapi.documents(UID).create({
           data: {
             slug,
             ...data,
-            locale: "en", // важно, раз у тебя все записи en
+            locale: "en",
           },
         });
         created++;
       }
+    }
 
-
-    // ✅ ВАЖНО: после импорта всегда repair document-layer
+    // ✅ после импорта делаем repair document-layer (на всякий случай)
     const repaired = await repairDocumentLayer();
 
     strapi.log.info(
       `[CSV] updated=${updated} created=${created} skipped=${skipped} invalid=${invalid} dedupRemoved=${dedupRemoved} repaired=${repaired}`,
     );
 
-    ctx.send({ ok: true, updated, created, skipped, invalid, dedupRemoved, repaired });
+    ctx.send({
+      ok: true,
+      updated,
+      created,
+      skipped,
+      invalid,
+      dedupRemoved,
+      repaired,
+    });
   },
 };
