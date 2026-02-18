@@ -393,26 +393,49 @@ export default {
         const keep = existingAll[0]; // самый свежий (id desc)
         const extras = existingAll.slice(1);
 
-        // 1) обновляем основной
-        await strapi.db.query(UID).update({
-          where: { id: keep.id },
-          data,
-        });
+             // ✅ ВАЖНО: CM видит только то, что прошло через documents layer
+      const existingAll = await findProductsBySlug(slug);
+
+      if (existingAll.length) {
+        const keep = existingAll[0]; // самый свежий (id desc)
+        const extras = existingAll.slice(1);
+
+        // 1) обновляем основной — через documents (если есть documentId)
+        if (keep.documentId) {
+          await strapi.documents(UID).update({
+            documentId: keep.documentId,
+            data,
+          });
+        } else {
+          // fallback (на всякий случай)
+          await strapi.db.query(UID).update({
+            where: { id: keep.id },
+            data,
+          });
+        }
         updated++;
 
-        // 2) удаляем дубли (если были)
+        // 2) удаляем дубли
         for (const ex of extras) {
-          await strapi.db.query(UID).delete({ where: { id: ex.id } });
+          if (ex.documentId) {
+            await strapi.documents(UID).delete({ documentId: ex.documentId });
+          } else {
+            await strapi.db.query(UID).delete({ where: { id: ex.id } });
+          }
           dedupRemoved++;
         }
       } else {
-        // создаём новый
-        await strapi.db.query(UID).create({
-          data: { slug, ...data },
+        // ✅ создаём новый — ТОЛЬКО через documents
+        await strapi.documents(UID).create({
+          data: {
+            slug,
+            ...data,
+            locale: "en", // важно, раз у тебя все записи en
+          },
         });
         created++;
       }
-    }
+
 
     // ✅ ВАЖНО: после импорта всегда repair document-layer
     const repaired = await repairDocumentLayer();
