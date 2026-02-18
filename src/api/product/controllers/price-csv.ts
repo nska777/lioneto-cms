@@ -19,6 +19,44 @@ const CSV_HEADER = [
   "sortOrder",
 ];
 
+const BRAND_ENUM = new Set([
+  "scandy",
+  "amber",
+  "salvador",
+  "buongiorno",
+  "elizabeth",
+  "pitti",
+]);
+
+const CAT_ENUM = new Set([
+  "fasadi",
+  "komody",
+  "krovati",
+  "plintusy",
+  "polki",
+  "shkafy",
+  "stellaji",
+  "stoli",
+  "tumby",
+  "veshalki",
+  "vitrini",
+  "zerkala",
+  "pufi",
+  "bedrooms",
+  "living",
+  "youth",
+]);
+
+// ⚠️ ВАЖНО: в enum есть "Только сегодня " с пробелом в конце — оставляем как есть.
+const BADGE_ENUM = [
+  "Хит продаж",
+  "Лучшая цена",
+  "Супер акция",
+  "Распродажа",
+  "Только сегодня ",
+  "Успейте купить",
+];
+
 function esc(v: any) {
   const s = String(v ?? "");
   if (/[,"\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -142,15 +180,53 @@ const toBoolOrNull = (v: any) => {
   return null;
 };
 
+// ✅ нормализация enum: brand/cat (lower+trim)
+function normLower(v: any) {
+  return String(v ?? "").trim().toLowerCase();
+}
+
+// ✅ badge: матчим по trim() к допустимым, но сохраняем оригинальную строку из enum (включая пробелы)
+function normalizeBadge(v: any) {
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+  const hit = BADGE_ENUM.find((x) => String(x).trim() === s);
+  return hit ?? null;
+}
+
 // ✅ найти ВСЕ записи по slug (если вдруг дубли уже есть)
 async function findProductsBySlug(slug: string) {
   const list = await strapi.db.query(UID).findMany({
     where: { slug },
-    select: ["id", "slug"],
+    select: ["id", "slug", "documentId"],
     orderBy: { id: "desc" }, // самая свежая первая
     limit: 50,
   });
   return Array.isArray(list) ? list : [];
+}
+
+// ✅ авто-repair document-layer чтобы CM не падал в 0
+async function repairDocumentLayer() {
+  const all = await strapi.db.query(UID).findMany({
+    select: ["id", "documentId", "title"],
+    orderBy: { id: "asc" },
+    limit: 20000,
+  });
+
+  let repaired = 0;
+  for (const p of all ?? []) {
+    const documentId = (p as any).documentId;
+    if (!documentId) continue;
+
+    await strapi.documents(UID).update({
+      documentId,
+      data: { title: (p as any).title ?? "" }, // touch
+    });
+
+    repaired++;
+  }
+
+  strapi.log.info(`[CSV] document-layer repaired=${repaired}`);
+  return repaired;
 }
 
 export default {
@@ -232,6 +308,7 @@ export default {
     let created = 0;
     let skipped = 0;
     let dedupRemoved = 0;
+    let invalid = 0;
 
     for (const row of rows) {
       const slug = String(row.slug ?? "").trim();
@@ -242,15 +319,28 @@ export default {
 
       const data: any = {};
 
-      // строки
+      // strings
       const title = String(row.title ?? "").trim();
       if (title) data.title = title;
 
-      const brand = String(row.brand ?? "").trim();
-      if (brand) data.brand = brand;
+      // enums: brand/cat/badge
+      const brandRaw = normLower(row.brand);
+      if (brandRaw) {
+        if (BRAND_ENUM.has(brandRaw)) data.brand = brandRaw;
+        else {
+          invalid++;
+          strapi.log.warn(`[CSV] invalid brand="${row.brand}" slug=${slug}`);
+        }
+      }
 
-      const cat = String(row.cat ?? "").trim();
-      if (cat) data.cat = cat;
+      const catRaw = normLower(row.cat);
+      if (catRaw) {
+        if (CAT_ENUM.has(catRaw)) data.cat = catRaw;
+        else {
+          invalid++;
+          strapi.log.warn(`[CSV] invalid cat="${row.cat}" slug=${slug}`);
+        }
+      }
 
       const module = String(row.module ?? "").trim();
       if (module) data.module = module;
@@ -258,10 +348,14 @@ export default {
       const collection = String(row.collection ?? "").trim();
       if (collection) data.collection = collection;
 
-      const badge = String(row.collectionBadge ?? "").trim();
-      // ВАЖНО: если хочешь уметь "очищать" badge — оставь как есть.
-      // Сейчас пустое значение просто НЕ обновляем.
-      if (badge) data.collectionBadge = badge;
+      const badgeNorm = normalizeBadge(row.collectionBadge);
+      if (badgeNorm) data.collectionBadge = badgeNorm;
+      else if (String(row.collectionBadge ?? "").trim()) {
+        invalid++;
+        strapi.log.warn(
+          `[CSV] invalid collectionBadge="${row.collectionBadge}" slug=${slug}`,
+        );
+      }
 
       // boolean
       const b = toBoolOrNull(row.isActive);
@@ -289,8 +383,9 @@ export default {
         continue;
       }
 
-      // ✅ publish (если Draft/Publish включён)
-      data.publishedAt = new Date();
+      // ✅ publish/unpublish только если isActive явно пришёл
+      if (b === true) data.publishedAt = new Date();
+      if (b === false) data.publishedAt = null;
 
       const existingAll = await findProductsBySlug(slug);
 
@@ -319,10 +414,13 @@ export default {
       }
     }
 
+    // ✅ ВАЖНО: после импорта всегда repair document-layer
+    const repaired = await repairDocumentLayer();
+
     strapi.log.info(
-      `[CSV] updated=${updated} created=${created} skipped=${skipped} dedupRemoved=${dedupRemoved}`,
+      `[CSV] updated=${updated} created=${created} skipped=${skipped} invalid=${invalid} dedupRemoved=${dedupRemoved} repaired=${repaired}`,
     );
 
-    ctx.send({ ok: true, updated, created, skipped, dedupRemoved });
+    ctx.send({ ok: true, updated, created, skipped, invalid, dedupRemoved, repaired });
   },
 };
