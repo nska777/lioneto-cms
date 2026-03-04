@@ -1,0 +1,18 @@
+{
+  "kind": "singleType",
+  "collectionName": "lioneto_settings",
+  "info": {
+    "singularName": "lioneto-setting",
+    "pluralName": "lioneto-settings",
+    "displayName": "Site Settings"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "showLanguageToggle": {
+      "type": "boolean"
+    }
+  }
+}

@@ -4,7 +4,7 @@ export default ({ env }) => ({
 
   proxy: true,
 
-  url: env("PUBLIC_URL", "https://lioneto-cms.ru"),
+  url: env("PUBLIC_URL", "http://localhost:1337"),
 
   app: {
     keys: env.array("APP_KEYS"),

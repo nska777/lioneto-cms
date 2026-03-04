@@ -16,11 +16,10 @@
       "required": true
     },
     "slug": {
-  "type": "uid",
-  "targetField": "title",
-  "required": true,
-  "unique": true
-},
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
     "isActive": {
       "type": "boolean",
       "default": true
@@ -114,6 +113,18 @@
       "type": "component",
       "component": "product.variant",
       "repeatable": true
+    },
+    "sku": {
+      "type": "string"
+    },
+    "size": {
+      "type": "string"
+    },
+    "material": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
     }
   }
 }
