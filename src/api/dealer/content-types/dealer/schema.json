@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealers",
+  "info": {
+    "singularName": "dealer",
+    "pluralName": "dealers",
+    "displayName": "Dealer"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "login": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "passwordHash": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "region": {
+      "type": "enumeration",
+      "required": true,
+      "default": "uzbekistan",
+      "enum": [
+        "uzbekistan",
+        "russia",
+        "kazakhstan",
+        "tajikistan"
+      ]
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "mustChangePassword": {
+      "type": "boolean",
+      "default": true
+    },
+    "roleLabel": {
+      "type": "string"
+    },
+    "managerName": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}

@@ -430,6 +430,53 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDealerDealer extends Struct.CollectionTypeSchema {
+  collectionName: 'dealers';
+  info: {
+    displayName: 'Dealer';
+    pluralName: 'dealers';
+    singularName: 'dealer';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    city: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer.dealer'
+    > &
+      Schema.Attribute.Private;
+    login: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    managerName: Schema.Attribute.String;
+    mustChangePassword: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<true>;
+    notes: Schema.Attribute.Text;
+    passwordHash: Schema.Attribute.String & Schema.Attribute.Required;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    region: Schema.Attribute.Enumeration<
+      ['uzbekistan', 'russia', 'kazakhstan', 'tajikistan']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'uzbekistan'>;
+    roleLabel: Schema.Attribute.String;
+    slug: Schema.Attribute.UID<'title'>;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -1120,6 +1167,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::dealer.dealer': ApiDealerDealer;
       'api::global.global': ApiGlobalGlobal;
       'api::lioneto-setting.lioneto-setting': ApiLionetoSettingLionetoSetting;
       'api::news-item.news-item': ApiNewsItemNewsItem;
