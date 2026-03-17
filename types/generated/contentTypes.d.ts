@@ -430,6 +430,43 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDealerActivityLogDealerActivityLog
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_activity_logs';
+  info: {
+    displayName: 'Dealer Activity Log';
+    pluralName: 'dealer-activity-logs';
+    singularName: 'dealer-activity-log';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    actionType: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dealer: Schema.Attribute.Relation<'oneToOne', 'api::dealer.dealer'>;
+    entityId: Schema.Attribute.String;
+    entityTitle: Schema.Attribute.String;
+    entityType: Schema.Attribute.String;
+    ip: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-activity-log.dealer-activity-log'
+    > &
+      Schema.Attribute.Private;
+    payload: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    url: Schema.Attribute.Text;
+    userAgent: Schema.Attribute.Text;
+  };
+}
+
 export interface ApiDealerDealer extends Struct.CollectionTypeSchema {
   collectionName: 'dealers';
   info: {
@@ -1167,6 +1204,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::dealer-activity-log.dealer-activity-log': ApiDealerActivityLogDealerActivityLog;
       'api::dealer.dealer': ApiDealerDealer;
       'api::global.global': ApiGlobalGlobal;
       'api::lioneto-setting.lioneto-setting': ApiLionetoSettingLionetoSetting;

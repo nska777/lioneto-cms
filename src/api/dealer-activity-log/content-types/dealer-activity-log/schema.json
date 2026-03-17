@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_activity_logs",
+  "info": {
+    "singularName": "dealer-activity-log",
+    "pluralName": "dealer-activity-logs",
+    "displayName": "Dealer Activity Log"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "dealer": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::dealer.dealer"
+    },
+    "actionType": {
+      "type": "string"
+    },
+    "entityType": {
+      "type": "string"
+    },
+    "entityId": {
+      "type": "string"
+    },
+    "entityTitle": {
+      "type": "string"
+    },
+    "url": {
+      "type": "text"
+    },
+    "ip": {
+      "type": "string"
+    },
+    "userAgent": {
+      "type": "text"
+    },
+    "payload": {
+      "type": "json"
+    }
+  }
+}
