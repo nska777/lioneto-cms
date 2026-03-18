@@ -70,6 +70,9 @@
         "admin",
         "owner"
       ]
+    },
+    "address": {
+      "type": "text"
     }
   }
 }
