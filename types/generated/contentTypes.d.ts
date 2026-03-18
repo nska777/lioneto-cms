@@ -505,7 +505,9 @@ export interface ApiDealerDealer extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'uzbekistan'>;
-    roleLabel: Schema.Attribute.String;
+    role: Schema.Attribute.Enumeration<['dealer', 'admin', 'owner']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'dealer'>;
     slug: Schema.Attribute.UID<'title'>;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;

@@ -55,14 +55,21 @@
       "type": "boolean",
       "default": true
     },
-    "roleLabel": {
-      "type": "string"
-    },
     "managerName": {
       "type": "string"
     },
     "notes": {
       "type": "text"
+    },
+    "role": {
+      "type": "enumeration",
+      "required": true,
+      "default": "dealer",
+      "enum": [
+        "dealer",
+        "admin",
+        "owner"
+      ]
     }
   }
 }
