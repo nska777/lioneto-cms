@@ -1,0 +1,62 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_newses",
+  "info": {
+    "singularName": "dealer-news",
+    "pluralName": "dealer-newses",
+    "displayName": "Dealer News"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "excerpt": {
+      "type": "text"
+    },
+    "content": {
+      "type": "richtext",
+      "required": true
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "kind": {
+      "type": "enumeration",
+      "required": true,
+      "default": "news",
+      "enum": [
+        "news",
+        "promo"
+      ]
+    },
+    "isPinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "viewsCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "likesCount": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}
