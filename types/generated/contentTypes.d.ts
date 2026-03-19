@@ -467,6 +467,44 @@ export interface ApiDealerActivityLogDealerActivityLog
   };
 }
 
+export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_files';
+  info: {
+    displayName: 'dealer-file';
+    pluralName: 'dealer-files';
+    singularName: 'dealer-file';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    countryCode: Schema.Attribute.Enumeration<
+      ['RU', 'UZ', 'KZ', 'TJ', 'KG', 'AM', 'BY', 'AZ']
+    > &
+      Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    file: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'> &
+      Schema.Attribute.Required;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-file.dealer-file'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    type: Schema.Attribute.Enumeration<['price', 'catalog']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiDealerNewsDealerNews extends Struct.CollectionTypeSchema {
   collectionName: 'dealer_newses';
   info: {
@@ -519,6 +557,9 @@ export interface ApiDealerDealer extends Struct.CollectionTypeSchema {
   attributes: {
     address: Schema.Attribute.Text;
     city: Schema.Attribute.String;
+    countryCode: Schema.Attribute.Enumeration<
+      ['RU', 'UZ', 'KZ', 'TJ', 'KG', 'AM', 'BY', 'AZ']
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1247,6 +1288,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::dealer-activity-log.dealer-activity-log': ApiDealerActivityLogDealerActivityLog;
+      'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
       'api::dealer.dealer': ApiDealerDealer;
       'api::global.global': ApiGlobalGlobal;

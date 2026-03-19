@@ -73,6 +73,19 @@
     },
     "address": {
       "type": "text"
+    },
+    "countryCode": {
+      "type": "enumeration",
+      "enum": [
+        "RU",
+        "UZ",
+        "KZ",
+        "TJ",
+        "KG",
+        "AM",
+        "BY",
+        "AZ"
+      ]
     }
   }
 }
