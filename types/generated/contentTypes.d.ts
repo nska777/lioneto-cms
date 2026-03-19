@@ -484,6 +484,7 @@ export interface ApiDealerNewsDealerNews extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     excerpt: Schema.Attribute.Text;
+    hashtags: Schema.Attribute.JSON;
     isPinned: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     kind: Schema.Attribute.Enumeration<['news', 'promo']> &
       Schema.Attribute.Required &

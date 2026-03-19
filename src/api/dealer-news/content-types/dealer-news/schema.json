@@ -57,6 +57,9 @@
     "likesCount": {
       "type": "integer",
       "default": 0
+    },
+    "hashtags": {
+      "type": "json"
     }
   }
 }
