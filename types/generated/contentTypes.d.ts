@@ -478,6 +478,10 @@ export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    collectionSlug: Schema.Attribute.Enumeration<
+      ['amber', 'scandy', 'elizabeth', 'salvador', 'pitti', 'buongiorno']
+    > &
+      Schema.Attribute.Required;
     countryCode: Schema.Attribute.Enumeration<
       ['RU', 'UZ', 'KZ', 'TJ', 'KG', 'AM', 'BY', 'AZ']
     > &

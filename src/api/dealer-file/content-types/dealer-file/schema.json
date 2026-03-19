@@ -54,6 +54,18 @@
     "isActive": {
       "type": "boolean",
       "default": true
+    },
+    "collectionSlug": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "amber",
+        "scandy",
+        "elizabeth",
+        "salvador",
+        "pitti",
+        "buongiorno"
+      ]
     }
   }
 }
