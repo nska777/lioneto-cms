@@ -20,7 +20,8 @@
       "required": true,
       "enum": [
         "price",
-        "tech_catalog"
+        "tech_catalog",
+        "instruction"
       ]
     },
     "countryCode": {
@@ -66,6 +67,12 @@
         "pitti",
         "buongiorno"
       ]
+    },
+    "collectionTitle": {
+      "type": "string"
+    },
+    "sortOrder": {
+      "type": "integer"
     }
   }
 }

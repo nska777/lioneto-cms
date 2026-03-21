@@ -482,6 +482,7 @@ export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
       ['amber', 'scandy', 'elizabeth', 'salvador', 'pitti', 'buongiorno']
     > &
       Schema.Attribute.Required;
+    collectionTitle: Schema.Attribute.String;
     countryCode: Schema.Attribute.Enumeration<
       ['RU', 'UZ', 'KZ', 'TJ', 'KG', 'AM', 'BY', 'AZ']
     >;
@@ -499,8 +500,11 @@ export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    sortOrder: Schema.Attribute.Integer;
     title: Schema.Attribute.String & Schema.Attribute.Required;
-    type: Schema.Attribute.Enumeration<['price', 'tech_catalog']> &
+    type: Schema.Attribute.Enumeration<
+      ['price', 'tech_catalog', 'instruction']
+    > &
       Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
