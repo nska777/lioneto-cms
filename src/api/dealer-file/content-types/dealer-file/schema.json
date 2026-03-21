@@ -20,12 +20,12 @@
       "required": true,
       "enum": [
         "price",
-        "catalog"
+        "tech_catalog"
       ]
     },
     "countryCode": {
       "type": "enumeration",
-      "required": true,
+      "required": false,
       "enum": [
         "RU",
         "UZ",
