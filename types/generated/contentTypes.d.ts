@@ -551,6 +551,53 @@ export interface ApiDealerNewsDealerNews extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDealerTrainingDealerTraining
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_trainings';
+  info: {
+    displayName: 'dealer-training';
+    pluralName: 'dealer-trainings';
+    singularName: 'dealer-training';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    category: Schema.Attribute.Enumeration<
+      ['presentation', 'sales', 'interior']
+    > &
+      Schema.Attribute.Required;
+    collectionTitle: Schema.Attribute.String;
+    cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.String;
+    file: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    fileUrl: Schema.Attribute.String;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    label: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-training.dealer-training'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    tags: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    type: Schema.Attribute.Enumeration<
+      ['pptx', 'pdf', 'doc', 'video', 'workbook']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiDealerDealer extends Struct.CollectionTypeSchema {
   collectionName: 'dealers';
   info: {
@@ -1297,6 +1344,7 @@ declare module '@strapi/strapi' {
       'api::dealer-activity-log.dealer-activity-log': ApiDealerActivityLogDealerActivityLog;
       'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
+      'api::dealer-training.dealer-training': ApiDealerTrainingDealerTraining;
       'api::dealer.dealer': ApiDealerDealer;
       'api::global.global': ApiGlobalGlobal;
       'api::lioneto-setting.lioneto-setting': ApiLionetoSettingLionetoSetting;

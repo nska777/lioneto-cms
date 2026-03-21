@@ -1,0 +1,86 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_trainings",
+  "info": {
+    "singularName": "dealer-training",
+    "pluralName": "dealer-trainings",
+    "displayName": "dealer-training"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "category": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "presentation",
+        "sales",
+        "interior"
+      ]
+    },
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "pptx",
+        "pdf",
+        "doc",
+        "video",
+        "workbook"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "collectionTitle": {
+      "type": "string"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "label": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "string"
+    },
+    "fileUrl": {
+      "type": "string"
+    }
+  }
+}
