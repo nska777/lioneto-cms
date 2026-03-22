@@ -598,6 +598,47 @@ export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDealerMultimediaDealerMultimedia
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_multimedias';
+  info: {
+    displayName: 'dealer-multimedia';
+    pluralName: 'dealer-multimedias';
+    singularName: 'dealer-multimedia';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    collectionSlug: Schema.Attribute.Enumeration<
+      ['amber', 'scandy', 'elizabeth', 'salvador', 'pitti', 'buongiorno']
+    >;
+    cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.String;
+    image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-multimedia.dealer-multimedia'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    sortOrder: Schema.Attribute.Integer;
+    title: Schema.Attribute.String;
+    type: Schema.Attribute.Enumeration<['photo', 'video']>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    videoFile: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    videoUrl: Schema.Attribute.String;
+  };
+}
+
 export interface ApiDealerNewsDealerNews extends Struct.CollectionTypeSchema {
   collectionName: 'dealer_newses';
   info: {
@@ -1431,6 +1472,7 @@ declare module '@strapi/strapi' {
       'api::dealer-calendar-event.dealer-calendar-event': ApiDealerCalendarEventDealerCalendarEvent;
       'api::dealer-calendar-request.dealer-calendar-request': ApiDealerCalendarRequestDealerCalendarRequest;
       'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
+      'api::dealer-multimedia.dealer-multimedia': ApiDealerMultimediaDealerMultimedia;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
       'api::dealer-training.dealer-training': ApiDealerTrainingDealerTraining;
       'api::dealer.dealer': ApiDealerDealer;
