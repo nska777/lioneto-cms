@@ -467,6 +467,92 @@ export interface ApiDealerActivityLogDealerActivityLog
   };
 }
 
+export interface ApiDealerCalendarEventDealerCalendarEvent
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_calendar_events';
+  info: {
+    displayName: 'Dealer Calendar Event';
+    pluralName: 'dealer-calendar-events';
+    singularName: 'dealer-calendar-event';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    endDate: Schema.Attribute.DateTime;
+    eventDate: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    format: Schema.Attribute.Enumeration<['offline', 'online', 'hybrid']>;
+    isActive: Schema.Attribute.Boolean;
+    isRegistrationOpen: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-calendar-event.dealer-calendar-event'
+    > &
+      Schema.Attribute.Private;
+    location: Schema.Attribute.String;
+    meetingUrl: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    type: Schema.Attribute.Enumeration<
+      ['training', 'webinar', 'meeting', 'exhibution', 'important', 'industry']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDealerCalendarRequestDealerCalendarRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_calendar_requests';
+  info: {
+    displayName: 'Dealer Calendar Request';
+    pluralName: 'dealer-calendar-requests';
+    singularName: 'dealer-calendar-request';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    calendarEventDate: Schema.Attribute.String & Schema.Attribute.Required;
+    calendarEventSlug: Schema.Attribute.String;
+    calendarEventTitle: Schema.Attribute.String & Schema.Attribute.Required;
+    comment: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dealerAccountLogin: Schema.Attribute.String;
+    dealerEmail: Schema.Attribute.Email & Schema.Attribute.Required;
+    dealerPhone: Schema.Attribute.String;
+    dealerRef: Schema.Attribute.String;
+    dealerTitle: Schema.Attribute.String & Schema.Attribute.Required;
+    employees: Schema.Attribute.Text & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-calendar-request.dealer-calendar-request'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    requestStatus: Schema.Attribute.Enumeration<
+      ['new', 'processed', 'approved', 'rejected']
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
   collectionName: 'dealer_files';
   info: {
@@ -1342,6 +1428,8 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::dealer-activity-log.dealer-activity-log': ApiDealerActivityLogDealerActivityLog;
+      'api::dealer-calendar-event.dealer-calendar-event': ApiDealerCalendarEventDealerCalendarEvent;
+      'api::dealer-calendar-request.dealer-calendar-request': ApiDealerCalendarRequestDealerCalendarRequest;
       'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
       'api::dealer-training.dealer-training': ApiDealerTrainingDealerTraining;

@@ -1,0 +1,81 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_calendar_events",
+  "info": {
+    "singularName": "dealer-calendar-event",
+    "pluralName": "dealer-calendar-events",
+    "displayName": "Dealer Calendar Event"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "training",
+        "webinar",
+        "meeting",
+        "exhibution",
+        "important",
+        "industry"
+      ]
+    },
+    "description": {
+      "type": "text"
+    },
+    "eventDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "endDate": {
+      "type": "datetime"
+    },
+    "format": {
+      "type": "enumeration",
+      "enum": [
+        "offline",
+        "online",
+        "hybrid"
+      ]
+    },
+    "location": {
+      "type": "string"
+    },
+    "meetingUrl": {
+      "type": "string"
+    },
+    "isRegistrationOpen": {
+      "type": "boolean",
+      "default": false
+    },
+    "isActive": {
+      "type": "boolean"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  }
+}
