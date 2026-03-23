@@ -125,6 +125,9 @@
     },
     "description": {
       "type": "richtext"
+    },
+    "color": {
+      "type": "string"
     }
   }
 }

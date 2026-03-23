@@ -923,6 +923,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         '\u0423\u0441\u043F\u0435\u0439\u0442\u0435 \u043A\u0443\u043F\u0438\u0442\u044C',
       ]
     >;
+    color: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
