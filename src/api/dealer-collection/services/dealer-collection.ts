@@ -1,0 +1,7 @@
+/**
+ * dealer-collection service
+ */
+
+import { factories } from '@strapi/strapi';
+
+export default factories.createCoreService('api::dealer-collection.dealer-collection');

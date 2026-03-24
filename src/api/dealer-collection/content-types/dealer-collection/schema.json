@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_collections",
+  "info": {
+    "singularName": "dealer-collection",
+    "pluralName": "dealer-collections",
+    "displayName": "dealer-collection"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "sortOrder": {
+      "type": "integer"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

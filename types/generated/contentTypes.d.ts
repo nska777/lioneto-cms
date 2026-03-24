@@ -553,6 +553,39 @@ export interface ApiDealerCalendarRequestDealerCalendarRequest
   };
 }
 
+export interface ApiDealerCollectionDealerCollection
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_collections';
+  info: {
+    displayName: 'dealer-collection';
+    pluralName: 'dealer-collections';
+    singularName: 'dealer-collection';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-collection.dealer-collection'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    sortOrder: Schema.Attribute.Integer;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
   collectionName: 'dealer_files';
   info: {
@@ -675,6 +708,98 @@ export interface ApiDealerNewsDealerNews extends Struct.CollectionTypeSchema {
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     viewsCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+  };
+}
+
+export interface ApiDealerProductAddonDealerProductAddon
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_product_addons';
+  info: {
+    displayName: 'Dealer Product Addon';
+    pluralName: 'dealer-product-addons';
+    singularName: 'dealer-product-addon';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    addonProduct: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::dealer-product.dealer-product'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    defaultQty: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    kind: Schema.Attribute.Enumeration<['required', 'recommended']> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-product-addon.dealer-product-addon'
+    > &
+      Schema.Attribute.Private;
+    parentProduct: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::dealer-product.dealer-product'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    sortOrder: Schema.Attribute.Integer;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDealerProductDealerProduct
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_products';
+  info: {
+    displayName: 'Dealer Product';
+    pluralName: 'dealer-products';
+    singularName: 'dealer-product';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    article: Schema.Attribute.String & Schema.Attribute.Required;
+    category: Schema.Attribute.Enumeration<
+      ['bedroom', 'living-room', 'youth', 'hallway', 'tables-chairs', 'addon']
+    >;
+    collection: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::dealer-collection.dealer-collection'
+    >;
+    color: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    gallery: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-product.dealer-product'
+    > &
+      Schema.Attribute.Private;
+    priceKZ: Schema.Attribute.Integer;
+    priceRU: Schema.Attribute.Integer;
+    priceTJ: Schema.Attribute.Integer;
+    priceUZ: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    sortOrder: Schema.Attribute.Integer;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1472,9 +1597,12 @@ declare module '@strapi/strapi' {
       'api::dealer-activity-log.dealer-activity-log': ApiDealerActivityLogDealerActivityLog;
       'api::dealer-calendar-event.dealer-calendar-event': ApiDealerCalendarEventDealerCalendarEvent;
       'api::dealer-calendar-request.dealer-calendar-request': ApiDealerCalendarRequestDealerCalendarRequest;
+      'api::dealer-collection.dealer-collection': ApiDealerCollectionDealerCollection;
       'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
       'api::dealer-multimedia.dealer-multimedia': ApiDealerMultimediaDealerMultimedia;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
+      'api::dealer-product-addon.dealer-product-addon': ApiDealerProductAddonDealerProductAddon;
+      'api::dealer-product.dealer-product': ApiDealerProductDealerProduct;
       'api::dealer-training.dealer-training': ApiDealerTrainingDealerTraining;
       'api::dealer.dealer': ApiDealerDealer;
       'api::global.global': ApiGlobalGlobal;
