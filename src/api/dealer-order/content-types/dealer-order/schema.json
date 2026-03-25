@@ -1,0 +1,80 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_orders",
+  "info": {
+    "singularName": "dealer-order",
+    "pluralName": "dealer-orders",
+    "displayName": "dealer-order"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "orderNumber": {
+      "type": "string",
+      "unique": true
+    },
+    "orderStatus": {
+      "type": "enumeration",
+      "default": "new",
+      "enum": [
+        "new",
+        "processing",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "dealer": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::dealer.dealer"
+    },
+    "dealerTitle": {
+      "type": "string"
+    },
+    "dealerEmail": {
+      "type": "email"
+    },
+    "countryCode": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "collectionTitles": {
+      "type": "string"
+    },
+    "totalQty": {
+      "type": "integer"
+    },
+    "subtotal": {
+      "type": "decimal"
+    },
+    "totalWithMarkup": {
+      "type": "decimal"
+    },
+    "globalMarkupPercent": {
+      "type": "decimal"
+    },
+    "total": {
+      "type": "decimal"
+    },
+    "submittedAt": {
+      "type": "datetime"
+    },
+    "items": {
+      "type": "json"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false
+    },
+    "globalMarkupAmount": {
+      "type": "decimal"
+    }
+  }
+}

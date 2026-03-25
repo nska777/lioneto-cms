@@ -711,6 +711,54 @@ export interface ApiDealerNewsDealerNews extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDealerOrderDealerOrder extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_orders';
+  info: {
+    displayName: 'dealer-order';
+    pluralName: 'dealer-orders';
+    singularName: 'dealer-order';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    collectionTitles: Schema.Attribute.String;
+    countryCode: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currency: Schema.Attribute.String;
+    dealer: Schema.Attribute.Relation<'oneToOne', 'api::dealer.dealer'>;
+    dealerEmail: Schema.Attribute.Email;
+    dealerTitle: Schema.Attribute.String;
+    globalMarkupAmount: Schema.Attribute.Decimal;
+    globalMarkupPercent: Schema.Attribute.Decimal;
+    isArchived: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    items: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-order.dealer-order'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    orderNumber: Schema.Attribute.String & Schema.Attribute.Unique;
+    orderStatus: Schema.Attribute.Enumeration<
+      ['new', 'processing', 'completed', 'cancelled']
+    > &
+      Schema.Attribute.DefaultTo<'new'>;
+    publishedAt: Schema.Attribute.DateTime;
+    submittedAt: Schema.Attribute.DateTime;
+    subtotal: Schema.Attribute.Decimal;
+    total: Schema.Attribute.Decimal;
+    totalQty: Schema.Attribute.Integer;
+    totalWithMarkup: Schema.Attribute.Decimal;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiDealerProductAddonDealerProductAddon
   extends Struct.CollectionTypeSchema {
   collectionName: 'dealer_product_addons';
@@ -1601,6 +1649,7 @@ declare module '@strapi/strapi' {
       'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
       'api::dealer-multimedia.dealer-multimedia': ApiDealerMultimediaDealerMultimedia;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
+      'api::dealer-order.dealer-order': ApiDealerOrderDealerOrder;
       'api::dealer-product-addon.dealer-product-addon': ApiDealerProductAddonDealerProductAddon;
       'api::dealer-product.dealer-product': ApiDealerProductDealerProduct;
       'api::dealer-training.dealer-training': ApiDealerTrainingDealerTraining;
