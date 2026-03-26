@@ -430,6 +430,49 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCustomerOrderCustomerOrder
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'customer_orders';
+  info: {
+    displayName: 'customer-order';
+    pluralName: 'customer-orders';
+    singularName: 'customer-order';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    comment: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currency: Schema.Attribute.String;
+    customer: Schema.Attribute.Relation<'manyToOne', 'api::customer.customer'>;
+    deliveryAddress: Schema.Attribute.Text;
+    deliveryType: Schema.Attribute.String;
+    fullName: Schema.Attribute.String;
+    items: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::customer-order.customer-order'
+    > &
+      Schema.Attribute.Private;
+    orderNumber: Schema.Attribute.String;
+    orderStatus: Schema.Attribute.Enumeration<
+      ['new', 'processing', 'confirmed', 'shipped', 'delivered', 'cancelled']
+    >;
+    paymentType: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    region: Schema.Attribute.String;
+    totalAmount: Schema.Attribute.Decimal;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCustomerCustomer extends Struct.CollectionTypeSchema {
   collectionName: 'customers';
   info: {
@@ -445,6 +488,10 @@ export interface ApiCustomerCustomer extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    customer_orders: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::customer-order.customer-order'
+    >;
     firstName: Schema.Attribute.String;
     isActive: Schema.Attribute.Boolean;
     lastName: Schema.Attribute.String;
@@ -1675,6 +1722,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::customer-order.customer-order': ApiCustomerOrderCustomerOrder;
       'api::customer.customer': ApiCustomerCustomer;
       'api::dealer-activity-log.dealer-activity-log': ApiDealerActivityLogDealerActivityLog;
       'api::dealer-calendar-event.dealer-calendar-event': ApiDealerCalendarEventDealerCalendarEvent;

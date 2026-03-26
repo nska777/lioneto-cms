@@ -1,0 +1,65 @@
+{
+  "kind": "collectionType",
+  "collectionName": "customer_orders",
+  "info": {
+    "singularName": "customer-order",
+    "pluralName": "customer-orders",
+    "displayName": "customer-order"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "orderNumber": {
+      "type": "string"
+    },
+    "orderStatus": {
+      "type": "enumeration",
+      "enum": [
+        "new",
+        "processing",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled"
+      ]
+    },
+    "customer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::customer.customer",
+      "inversedBy": "customer_orders"
+    },
+    "items": {
+      "type": "json"
+    },
+    "totalAmount": {
+      "type": "decimal"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "comment": {
+      "type": "text"
+    },
+    "deliveryType": {
+      "type": "string"
+    },
+    "deliveryAddress": {
+      "type": "text"
+    },
+    "paymentType": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "fullName": {
+      "type": "string"
+    }
+  }
+}

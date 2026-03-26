@@ -28,6 +28,12 @@
     },
     "isActive": {
       "type": "boolean"
+    },
+    "customer_orders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::customer-order.customer-order",
+      "mappedBy": "customer"
     }
   }
 }
