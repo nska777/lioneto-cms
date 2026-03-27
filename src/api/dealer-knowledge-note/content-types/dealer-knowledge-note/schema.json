@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_knowledge_notes",
+  "info": {
+    "singularName": "dealer-knowledge-note",
+    "pluralName": "dealer-knowledge-notes",
+    "displayName": "dealer-knowledge-note"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "excerpt": {
+      "type": "string"
+    },
+    "content": {
+      "type": "richtext",
+      "required": true
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "dealerLogin": {
+      "type": "string"
+    },
+    "dealerTitle": {
+      "type": "string"
+    },
+    "viewsCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "likesCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  }
+}

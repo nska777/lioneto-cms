@@ -711,6 +711,45 @@ export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDealerKnowledgeNoteDealerKnowledgeNote
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_knowledge_notes';
+  info: {
+    displayName: 'dealer-knowledge-note';
+    pluralName: 'dealer-knowledge-notes';
+    singularName: 'dealer-knowledge-note';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    content: Schema.Attribute.RichText & Schema.Attribute.Required;
+    cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dealerLogin: Schema.Attribute.String;
+    dealerTitle: Schema.Attribute.String;
+    excerpt: Schema.Attribute.String;
+    file: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    likesCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-knowledge-note.dealer-knowledge-note'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    viewsCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+  };
+}
+
 export interface ApiDealerKnowledgePostDealerKnowledgePost
   extends Struct.CollectionTypeSchema {
   collectionName: 'dealer_knowledge_posts';
@@ -1774,6 +1813,7 @@ declare module '@strapi/strapi' {
       'api::dealer-calendar-request.dealer-calendar-request': ApiDealerCalendarRequestDealerCalendarRequest;
       'api::dealer-collection.dealer-collection': ApiDealerCollectionDealerCollection;
       'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
+      'api::dealer-knowledge-note.dealer-knowledge-note': ApiDealerKnowledgeNoteDealerKnowledgeNote;
       'api::dealer-knowledge-post.dealer-knowledge-post': ApiDealerKnowledgePostDealerKnowledgePost;
       'api::dealer-multimedia.dealer-multimedia': ApiDealerMultimediaDealerMultimedia;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
