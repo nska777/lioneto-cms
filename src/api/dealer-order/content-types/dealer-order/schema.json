@@ -75,6 +75,18 @@
     },
     "globalMarkupAmount": {
       "type": "decimal"
+    },
+    "subtotalText": {
+      "type": "string"
+    },
+    "totalWithMarkupText": {
+      "type": "string"
+    },
+    "totalText": {
+      "type": "string"
+    },
+    "globalMarkupAmountText": {
+      "type": "string"
     }
   }
 }

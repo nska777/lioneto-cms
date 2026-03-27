@@ -812,6 +812,7 @@ export interface ApiDealerOrderDealerOrder extends Struct.CollectionTypeSchema {
     dealerEmail: Schema.Attribute.Email;
     dealerTitle: Schema.Attribute.String;
     globalMarkupAmount: Schema.Attribute.Decimal;
+    globalMarkupAmountText: Schema.Attribute.String;
     globalMarkupPercent: Schema.Attribute.Decimal;
     isArchived: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     items: Schema.Attribute.JSON;
@@ -830,9 +831,12 @@ export interface ApiDealerOrderDealerOrder extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     submittedAt: Schema.Attribute.DateTime;
     subtotal: Schema.Attribute.Decimal;
+    subtotalText: Schema.Attribute.String;
     total: Schema.Attribute.Decimal;
     totalQty: Schema.Attribute.Integer;
+    totalText: Schema.Attribute.String;
     totalWithMarkup: Schema.Attribute.Decimal;
+    totalWithMarkupText: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
