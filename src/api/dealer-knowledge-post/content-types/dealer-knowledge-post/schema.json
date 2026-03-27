@@ -1,0 +1,82 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_knowledge_posts",
+  "info": {
+    "singularName": "dealer-knowledge-post",
+    "pluralName": "dealer-knowledge-posts",
+    "displayName": "dealer-knowledge-post"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "excerpt": {
+      "type": "string"
+    },
+    "content": {
+      "type": "richtext",
+      "required": true
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "news",
+        "note",
+        "acticle"
+      ]
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "isPinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "viewsCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "likesCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "tagsText": {
+      "type": "json"
+    }
+  }
+}

@@ -711,6 +711,47 @@ export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDealerKnowledgePostDealerKnowledgePost
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_knowledge_posts';
+  info: {
+    displayName: 'dealer-knowledge-post';
+    pluralName: 'dealer-knowledge-posts';
+    singularName: 'dealer-knowledge-post';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    content: Schema.Attribute.RichText & Schema.Attribute.Required;
+    cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    excerpt: Schema.Attribute.String;
+    file: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isPinned: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    likesCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-knowledge-post.dealer-knowledge-post'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    tagsText: Schema.Attribute.JSON;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    type: Schema.Attribute.Enumeration<['news', 'note', 'acticle']>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    viewsCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+  };
+}
+
 export interface ApiDealerMultimediaDealerMultimedia
   extends Struct.CollectionTypeSchema {
   collectionName: 'dealer_multimedias';
@@ -1733,6 +1774,7 @@ declare module '@strapi/strapi' {
       'api::dealer-calendar-request.dealer-calendar-request': ApiDealerCalendarRequestDealerCalendarRequest;
       'api::dealer-collection.dealer-collection': ApiDealerCollectionDealerCollection;
       'api::dealer-file.dealer-file': ApiDealerFileDealerFile;
+      'api::dealer-knowledge-post.dealer-knowledge-post': ApiDealerKnowledgePostDealerKnowledgePost;
       'api::dealer-multimedia.dealer-multimedia': ApiDealerMultimediaDealerMultimedia;
       'api::dealer-news.dealer-news': ApiDealerNewsDealerNews;
       'api::dealer-order.dealer-order': ApiDealerOrderDealerOrder;
