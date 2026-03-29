@@ -1001,11 +1001,13 @@ export interface ApiDealerProductDealerProduct
       'api::dealer-product.dealer-product'
     > &
       Schema.Attribute.Private;
+    material: Schema.Attribute.String;
     priceKZ: Schema.Attribute.Integer;
     priceRU: Schema.Attribute.Integer;
     priceTJ: Schema.Attribute.Integer;
     priceUZ: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
+    size: Schema.Attribute.String;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer;
     title: Schema.Attribute.String & Schema.Attribute.Required;

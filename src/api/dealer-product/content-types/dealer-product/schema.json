@@ -84,6 +84,12 @@
     },
     "priceTJ": {
       "type": "integer"
+    },
+    "size": {
+      "type": "string"
+    },
+    "material": {
+      "type": "string"
     }
   }
 }
