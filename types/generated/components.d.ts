@@ -1,5 +1,22 @@
 import type { Schema, Struct } from '@strapi/strapi';
 
+export interface DealerVariant extends Struct.ComponentSchema {
+  collectionName: 'components_dealer_variants';
+  info: {
+    displayName: 'Variant';
+  };
+  attributes: {
+    media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    priceDeltaKZT: Schema.Attribute.Integer;
+    priceDeltaRUB: Schema.Attribute.Integer;
+    priceDeltaTJS: Schema.Attribute.Integer;
+    priceDeltaUZS: Schema.Attribute.Integer;
+    title: Schema.Attribute.String;
+    type: Schema.Attribute.Enumeration<['color']>;
+    variantKey: Schema.Attribute.String;
+  };
+}
+
 export interface ProductVariant extends Struct.ComponentSchema {
   collectionName: 'components_product_variants';
   info: {
@@ -78,6 +95,7 @@ export interface SharedSocial extends Struct.ComponentSchema {
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
+      'dealer.variant': DealerVariant;
       'product.variant': ProductVariant;
       'shared.link': SharedLink;
       'shared.region-address': SharedRegionAddress;

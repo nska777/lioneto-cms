@@ -90,6 +90,11 @@
     },
     "material": {
       "type": "string"
+    },
+    "variants": {
+      "type": "component",
+      "component": "dealer.variant",
+      "repeatable": true
     }
   }
 }

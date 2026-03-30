@@ -1014,6 +1014,7 @@ export interface ApiDealerProductDealerProduct
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    variants: Schema.Attribute.Component<'dealer.variant', true>;
   };
 }
 

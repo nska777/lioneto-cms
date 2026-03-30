@@ -1,0 +1,44 @@
+{
+  "collectionName": "components_dealer_variants",
+  "info": {
+    "displayName": "Variant"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "color"
+      ]
+    },
+    "variantKey": {
+      "type": "string"
+    },
+    "priceDeltaUZS": {
+      "type": "integer"
+    },
+    "priceDeltaRUB": {
+      "type": "integer"
+    },
+    "media": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "priceDeltaKZT": {
+      "type": "integer"
+    },
+    "priceDeltaTJS": {
+      "type": "integer"
+    }
+  },
+  "config": {}
+}
