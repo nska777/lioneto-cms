@@ -1229,6 +1229,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    assemblyInstructionFile: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    assemblyInstructionTitle: Schema.Attribute.String;
     brand: Schema.Attribute.Enumeration<
       ['scandy', 'amber', 'salvador', 'buongiorno', 'elizabeth', 'pitti']
     >;
