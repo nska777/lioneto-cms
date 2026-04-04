@@ -95,6 +95,9 @@
       "type": "component",
       "component": "dealer.variant",
       "repeatable": true
+    },
+    "articleShort": {
+      "type": "string"
     }
   }
 }
