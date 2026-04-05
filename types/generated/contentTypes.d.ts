@@ -978,6 +978,10 @@ export interface ApiDealerProductDealerProduct
   attributes: {
     article: Schema.Attribute.String & Schema.Attribute.Required;
     articleShort: Schema.Attribute.String;
+    assemblyInstructionFile: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    assemblyInstructionTitle: Schema.Attribute.String;
     category: Schema.Attribute.Enumeration<
       ['bedroom', 'living-room', 'youth', 'hallway', 'tables-chairs', 'addon']
     >;

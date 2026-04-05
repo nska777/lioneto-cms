@@ -98,6 +98,19 @@
     },
     "articleShort": {
       "type": "string"
+    },
+    "assemblyInstructionTitle": {
+      "type": "string"
+    },
+    "assemblyInstructionFile": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }
