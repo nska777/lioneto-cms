@@ -17,6 +17,10 @@ const CSV_HEADER = [
   "oldPriceUZS",
   "oldPriceRUB",
   "sortOrder",
+  "sku",
+  "size",
+  "material",
+  "color",
 ];
 
 const BRAND_ENUM = new Set([
@@ -47,12 +51,11 @@ const CAT_ENUM = new Set([
   "youth",
 ]);
 
-// Алиасы (твои CSV-значения -> значения схемы)
 const CAT_ALIASES: Record<string, string> = {
   tumbi: "tumby",
   tumba: "tumby",
-  "tumby-tv": "tumby", // если у тебя в CSV так встречается
-  dekor: "fasadi", // ⚠️ ВАЖНО: если "dekor" это не категория, а модуль — лучше исправить CSV. Но так хоть не будет Draft.
+  "tumby-tv": "tumby",
+  dekor: "fasadi",
 };
 
 const BADGE_ENUM = [
@@ -60,7 +63,7 @@ const BADGE_ENUM = [
   "Лучшая цена",
   "Супер акция",
   "Распродажа",
-  "Только сегодня ", // да, с пробелом в конце
+  "Только сегодня ",
   "Успейте купить",
 ];
 
@@ -182,7 +185,6 @@ function normLower(v: any) {
   return String(v ?? "").trim().toLowerCase();
 }
 
-// badge: матчим по trim() к допустимым, но возвращаем каноническое значение (включая пробелы)
 function normalizeBadge(v: any) {
   const s = String(v ?? "").trim();
   if (!s) return null;
@@ -209,7 +211,6 @@ async function findProductsBySlug(slug: string) {
 }
 
 export default {
-  // GET /product-export
   async export(ctx: any) {
     const products = await strapi.db.query(UID).findMany({
       select: [
@@ -227,6 +228,10 @@ export default {
         "oldPriceUZS",
         "oldPriceRUB",
         "sortOrder",
+        "sku",
+        "size",
+        "material",
+        "color",
       ],
       orderBy: { id: "asc" },
       limit: 10000,
@@ -258,6 +263,10 @@ export default {
       oldPriceUZS: p.oldPriceUZS ?? "",
       oldPriceRUB: p.oldPriceRUB ?? "",
       sortOrder: p.sortOrder ?? "",
+      sku: p.sku ?? "",
+      size: p.size ?? "",
+      material: p.material ?? "",
+      color: p.color ?? "",
     }));
 
     const csvData = toCsv(rows);
@@ -267,7 +276,6 @@ export default {
     ctx.body = csvData;
   },
 
-  // POST /product-import
   async import(ctx: any) {
     const file = getUploadedFile(ctx);
     if (!file) return ctx.badRequest("CSV file is required");
@@ -327,6 +335,18 @@ export default {
         );
       }
 
+      const sku = String(row.sku ?? "").trim();
+      if (sku) data.sku = sku;
+
+      const size = String(row.size ?? "").trim();
+      if (size) data.size = size;
+
+      const material = String(row.material ?? "").trim();
+      if (material) data.material = material;
+
+      const color = String(row.color ?? "").trim();
+      if (color) data.color = color;
+
       const b = toBoolOrNull(row.isActive);
       if (b !== null) data.isActive = b;
 
@@ -350,7 +370,6 @@ export default {
         continue;
       }
 
-      // publish/unpublish если isActive пришёл
       if (b === true) data.publishedAt = new Date();
       if (b === false) data.publishedAt = null;
 
@@ -360,14 +379,12 @@ export default {
         const keep = existingAll[0];
         const extras = existingAll.slice(1);
 
-        // ✅ обновляем через documents layer, чтобы CM и API были консистентны
         if (keep.documentId) {
           await strapi.documents(UID).update({
             documentId: keep.documentId,
             data: { slug, ...data, locale: "en" },
           });
         } else {
-          // fallback (на всякий)
           await strapi.db.query(UID).update({
             where: { id: keep.id },
             data: { slug, ...data },
@@ -375,7 +392,6 @@ export default {
         }
         updated++;
 
-        // удаляем дубли
         for (const ex of extras) {
           if (ex.documentId) {
             await strapi.documents(UID).delete({ documentId: ex.documentId });
@@ -385,7 +401,6 @@ export default {
           dedupRemoved++;
         }
       } else {
-        // ✅ создаём ТОЛЬКО через documents layer
         await strapi.documents(UID).create({
           data: {
             slug,
