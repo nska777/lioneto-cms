@@ -1000,6 +1000,7 @@ export interface ApiDealerProductDealerProduct
     >;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isStockTracked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1012,14 +1013,69 @@ export interface ApiDealerProductDealerProduct
     priceTJ: Schema.Attribute.Integer;
     priceUZ: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
+    reservations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-reservation.dealer-reservation'
+    >;
+    reservedQty: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     size: Schema.Attribute.String;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer;
+    stockQty: Schema.Attribute.Integer;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     variants: Schema.Attribute.Component<'dealer.variant', true>;
+  };
+}
+
+export interface ApiDealerReservationDealerReservation
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dealer_reservations';
+  info: {
+    displayName: 'Dealer Reservation';
+    pluralName: 'dealer-reservations';
+    singularName: 'dealer-reservation';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    collectionTitle: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currency: Schema.Attribute.String;
+    dealer: Schema.Attribute.Relation<'manyToOne', 'api::dealer.dealer'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-reservation.dealer-reservation'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    orderNumber: Schema.Attribute.String;
+    product: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::dealer-product.dealer-product'
+    >;
+    productArticle: Schema.Attribute.String;
+    productTitle: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<1>;
+    reservationStatus: Schema.Attribute.Enumeration<
+      ['active', 'expired', 'converted', 'cancelled']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'active'>;
+    reservedUntil: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    snapshotPrice: Schema.Attribute.Decimal;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1112,6 +1168,10 @@ export interface ApiDealerDealer extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'uzbekistan'>;
+    reservations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dealer-reservation.dealer-reservation'
+    >;
     role: Schema.Attribute.Enumeration<['dealer', 'admin', 'owner']> &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'dealer'>;
@@ -1832,6 +1892,7 @@ declare module '@strapi/strapi' {
       'api::dealer-order.dealer-order': ApiDealerOrderDealerOrder;
       'api::dealer-product-addon.dealer-product-addon': ApiDealerProductAddonDealerProductAddon;
       'api::dealer-product.dealer-product': ApiDealerProductDealerProduct;
+      'api::dealer-reservation.dealer-reservation': ApiDealerReservationDealerReservation;
       'api::dealer-training.dealer-training': ApiDealerTrainingDealerTraining;
       'api::dealer.dealer': ApiDealerDealer;
       'api::global.global': ApiGlobalGlobal;

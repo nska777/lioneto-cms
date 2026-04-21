@@ -111,6 +111,23 @@
         "videos",
         "audios"
       ]
+    },
+    "stockQty": {
+      "type": "integer"
+    },
+    "reservedQty": {
+      "type": "integer",
+      "default": 0
+    },
+    "isStockTracked": {
+      "type": "boolean",
+      "default": true
+    },
+    "reservations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::dealer-reservation.dealer-reservation",
+      "mappedBy": "product"
     }
   }
 }

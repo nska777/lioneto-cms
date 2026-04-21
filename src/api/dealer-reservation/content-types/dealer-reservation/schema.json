@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dealer_reservations",
+  "info": {
+    "singularName": "dealer-reservation",
+    "pluralName": "dealer-reservations",
+    "displayName": "Dealer Reservation"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "dealer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::dealer.dealer",
+      "inversedBy": "reservations"
+    },
+    "product": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::dealer-product.dealer-product",
+      "inversedBy": "reservations"
+    },
+    "productTitle": {
+      "type": "string"
+    },
+    "productArticle": {
+      "type": "string"
+    },
+    "collectionTitle": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "integer",
+      "required": true,
+      "default": 1
+    },
+    "reservationStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "active",
+      "enum": [
+        "active",
+        "expired",
+        "converted",
+        "cancelled"
+      ]
+    },
+    "reservedUntil": {
+      "type": "datetime",
+      "required": true
+    },
+    "snapshotPrice": {
+      "type": "decimal"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "orderNumber": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}

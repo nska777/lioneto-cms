@@ -86,6 +86,12 @@
         "BY",
         "AZ"
       ]
+    },
+    "reservations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::dealer-reservation.dealer-reservation",
+      "mappedBy": "dealer"
     }
   }
 }
