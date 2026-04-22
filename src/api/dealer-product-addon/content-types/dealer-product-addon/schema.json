@@ -39,6 +39,22 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::dealer-product.dealer-product"
+    },
+    "groupKey": {
+      "type": "string"
+    },
+    "groupTitle": {
+      "type": "string"
+    },
+    "groupSelection": {
+      "type": "enumeration",
+      "enum": [
+        "single",
+        "multiple"
+      ]
+    },
+    "groupOrder": {
+      "type": "integer"
     }
   }
 }

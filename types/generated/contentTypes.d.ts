@@ -943,6 +943,10 @@ export interface ApiDealerProductAddonDealerProductAddon
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     defaultQty: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
+    groupKey: Schema.Attribute.String;
+    groupOrder: Schema.Attribute.Integer;
+    groupSelection: Schema.Attribute.Enumeration<['single', 'multiple']>;
+    groupTitle: Schema.Attribute.String;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     kind: Schema.Attribute.Enumeration<['required', 'recommended']> &
       Schema.Attribute.Required;
