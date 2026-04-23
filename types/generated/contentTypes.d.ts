@@ -1316,7 +1316,9 @@ export interface ApiProductSetItemProductSetItem
       'api::product.product'
     >;
     publishedAt: Schema.Attribute.DateTime;
-    quantity: Schema.Attribute.Integer & Schema.Attribute.Required;
+    quantity: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<1>;
     sort_order: Schema.Attribute.Integer;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
