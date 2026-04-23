@@ -10,7 +10,7 @@
     },
     "item_product": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::product.product"
     },
     "sort_order": {

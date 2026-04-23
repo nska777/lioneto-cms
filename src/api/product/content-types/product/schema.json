@@ -142,10 +142,8 @@
         "audios"
       ]
     },
-    "set_items": {
-      "type": "component",
-      "component": "product.set-item",
-      "repeatable": true
+    "set_items_json": {
+      "type": "json"
     }
   }
 }

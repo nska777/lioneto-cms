@@ -1360,7 +1360,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     priceRUB: Schema.Attribute.Integer;
     priceUZS: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
-    set_items: Schema.Attribute.Component<'product.set-item', true>;
+    set_items_json: Schema.Attribute.JSON;
     size: Schema.Attribute.String;
     sku: Schema.Attribute.String;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;

@@ -23,7 +23,10 @@ export interface ProductSetItem extends Struct.ComponentSchema {
     displayName: 'set item';
   };
   attributes: {
-    item_product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
+    item_product: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::product.product'
+    >;
     quantity: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
     sort_order: Schema.Attribute.Integer;
     title: Schema.Attribute.String;
