@@ -13,15 +13,13 @@
   "attributes": {
     "parent_product": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::product.product",
-      "inversedBy": "product_set_items"
+      "relation": "oneToOne",
+      "target": "api::product.product"
     },
     "item_product": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::product.product",
-      "inversedBy": "used_in_sets"
+      "relation": "oneToOne",
+      "target": "api::product.product"
     },
     "sort_order": {
       "type": "integer"

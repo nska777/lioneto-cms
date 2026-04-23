@@ -141,18 +141,6 @@
         "videos",
         "audios"
       ]
-    },
-    "product_set_items": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::product-set-item.product-set-item",
-      "mappedBy": "parent_product"
-    },
-    "used_in_sets": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::product-set-item.product-set-item",
-      "mappedBy": "item_product"
     }
   }
 }

@@ -1301,10 +1301,7 @@ export interface ApiProductSetItemProductSetItem
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    item_product: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::product.product'
-    >;
+    item_product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1312,7 +1309,7 @@ export interface ApiProductSetItemProductSetItem
     > &
       Schema.Attribute.Private;
     parent_product: Schema.Attribute.Relation<
-      'manyToOne',
+      'oneToOne',
       'api::product.product'
     >;
     publishedAt: Schema.Attribute.DateTime;
@@ -1400,10 +1397,6 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     oldPriceUZS: Schema.Attribute.Integer;
     priceRUB: Schema.Attribute.Integer;
     priceUZS: Schema.Attribute.Integer;
-    product_set_items: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::product-set-item.product-set-item'
-    >;
     publishedAt: Schema.Attribute.DateTime;
     size: Schema.Attribute.String;
     sku: Schema.Attribute.String;
@@ -1413,10 +1406,6 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    used_in_sets: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::product-set-item.product-set-item'
-    >;
     variants: Schema.Attribute.Component<'product.variant', true>;
   };
 }
