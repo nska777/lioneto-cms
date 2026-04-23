@@ -1295,7 +1295,7 @@ export interface ApiProductSetItemProductSetItem
     singularName: 'product-set-item';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
