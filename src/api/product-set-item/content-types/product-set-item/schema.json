@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "product_set_items",
+  "info": {
+    "singularName": "product-set-item",
+    "pluralName": "product-set-items",
+    "displayName": "product-set-item"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "parent_product": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::product.product",
+      "inversedBy": "product_set_items"
+    },
+    "item_product": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::product.product",
+      "inversedBy": "used_in_sets"
+    },
+    "sort_order": {
+      "type": "integer"
+    },
+    "quantity": {
+      "type": "integer",
+      "required": true
+    },
+    "title": {
+      "type": "string"
+    }
+  }
+}

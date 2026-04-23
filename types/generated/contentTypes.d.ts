@@ -1286,6 +1286,45 @@ export interface ApiNewsItemNewsItem extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiProductSetItemProductSetItem
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'product_set_items';
+  info: {
+    displayName: 'product-set-item';
+    pluralName: 'product-set-items';
+    singularName: 'product-set-item';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    item_product: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::product.product'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::product-set-item.product-set-item'
+    > &
+      Schema.Attribute.Private;
+    parent_product: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::product.product'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Integer & Schema.Attribute.Required;
+    sort_order: Schema.Attribute.Integer;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   collectionName: 'products';
   info: {
@@ -1359,6 +1398,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     oldPriceUZS: Schema.Attribute.Integer;
     priceRUB: Schema.Attribute.Integer;
     priceUZS: Schema.Attribute.Integer;
+    product_set_items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::product-set-item.product-set-item'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     size: Schema.Attribute.String;
     sku: Schema.Attribute.String;
@@ -1368,6 +1411,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    used_in_sets: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::product-set-item.product-set-item'
+    >;
     variants: Schema.Attribute.Component<'product.variant', true>;
   };
 }
@@ -1902,6 +1949,7 @@ declare module '@strapi/strapi' {
       'api::global.global': ApiGlobalGlobal;
       'api::lioneto-setting.lioneto-setting': ApiLionetoSettingLionetoSetting;
       'api::news-item.news-item': ApiNewsItemNewsItem;
+      'api::product-set-item.product-set-item': ApiProductSetItemProductSetItem;
       'api::product.product': ApiProductProduct;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
