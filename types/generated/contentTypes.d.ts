@@ -1286,44 +1286,6 @@ export interface ApiNewsItemNewsItem extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiProductSetItemProductSetItem
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'product_set_items';
-  info: {
-    displayName: 'product-set-item';
-    pluralName: 'product-set-items';
-    singularName: 'product-set-item';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    item_product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::product-set-item.product-set-item'
-    > &
-      Schema.Attribute.Private;
-    parent_product: Schema.Attribute.Relation<
-      'oneToOne',
-      'api::product.product'
-    >;
-    publishedAt: Schema.Attribute.DateTime;
-    quantity: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<1>;
-    sort_order: Schema.Attribute.Integer;
-    title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   collectionName: 'products';
   info: {
@@ -1398,6 +1360,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     priceRUB: Schema.Attribute.Integer;
     priceUZS: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
+    set_items: Schema.Attribute.Component<'product.set-item', true>;
     size: Schema.Attribute.String;
     sku: Schema.Attribute.String;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
@@ -1940,7 +1903,6 @@ declare module '@strapi/strapi' {
       'api::global.global': ApiGlobalGlobal;
       'api::lioneto-setting.lioneto-setting': ApiLionetoSettingLionetoSetting;
       'api::news-item.news-item': ApiNewsItemNewsItem;
-      'api::product-set-item.product-set-item': ApiProductSetItemProductSetItem;
       'api::product.product': ApiProductProduct;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

@@ -141,6 +141,11 @@
         "videos",
         "audios"
       ]
+    },
+    "set_items": {
+      "type": "component",
+      "component": "product.set-item",
+      "repeatable": true
     }
   }
 }

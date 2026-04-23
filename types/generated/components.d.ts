@@ -17,6 +17,19 @@ export interface DealerVariant extends Struct.ComponentSchema {
   };
 }
 
+export interface ProductSetItem extends Struct.ComponentSchema {
+  collectionName: 'components_product_set_items';
+  info: {
+    displayName: 'set item';
+  };
+  attributes: {
+    item_product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
+    quantity: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
+    sort_order: Schema.Attribute.Integer;
+    title: Schema.Attribute.String;
+  };
+}
+
 export interface ProductVariant extends Struct.ComponentSchema {
   collectionName: 'components_product_variants';
   info: {
@@ -96,6 +109,7 @@ declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
       'dealer.variant': DealerVariant;
+      'product.set-item': ProductSetItem;
       'product.variant': ProductVariant;
       'shared.link': SharedLink;
       'shared.region-address': SharedRegionAddress;

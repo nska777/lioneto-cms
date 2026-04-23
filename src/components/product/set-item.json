@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_product_set_items",
+  "info": {
+    "displayName": "set item"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "item_product": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product.product"
+    },
+    "sort_order": {
+      "type": "integer"
+    },
+    "quantity": {
+      "type": "integer",
+      "default": 1
+    }
+  },
+  "config": {}
+}
