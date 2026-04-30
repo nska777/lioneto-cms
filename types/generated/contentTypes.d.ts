@@ -1297,6 +1297,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    articleShort: Schema.Attribute.String;
     assemblyInstructionFile: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios'
     >;
@@ -1340,12 +1341,19 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    dealerPriceKZ: Schema.Attribute.Integer;
+    dealerPriceRUB: Schema.Attribute.Integer;
+    dealerPriceTJ: Schema.Attribute.Integer;
+    dealerPriceUZS: Schema.Attribute.Integer;
     description: Schema.Attribute.RichText;
     gallery: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios',
       true
     >;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isDealerActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isStockTracked: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1357,14 +1365,18 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     module: Schema.Attribute.String;
     oldPriceRUB: Schema.Attribute.Integer;
     oldPriceUZS: Schema.Attribute.Integer;
+    priceKZ: Schema.Attribute.Integer;
     priceRUB: Schema.Attribute.Integer;
+    priceTJ: Schema.Attribute.Integer;
     priceUZS: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
+    reservedQty: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     set_items_json: Schema.Attribute.JSON;
     size: Schema.Attribute.String;
     sku: Schema.Attribute.String;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer;
+    stockQty: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

@@ -89,11 +89,45 @@
     "priceRUB": {
       "type": "integer"
     },
+    "priceKZ": {
+      "type": "integer"
+    },
+    "priceTJ": {
+      "type": "integer"
+    },
     "oldPriceUZS": {
       "type": "integer"
     },
     "oldPriceRUB": {
       "type": "integer"
+    },
+    "dealerPriceUZS": {
+      "type": "integer"
+    },
+    "dealerPriceRUB": {
+      "type": "integer"
+    },
+    "dealerPriceKZ": {
+      "type": "integer"
+    },
+    "dealerPriceTJ": {
+      "type": "integer"
+    },
+    "stockQty": {
+      "type": "integer",
+      "default": 0
+    },
+    "reservedQty": {
+      "type": "integer",
+      "default": 0
+    },
+    "isStockTracked": {
+      "type": "boolean",
+      "default": false
+    },
+    "isDealerActive": {
+      "type": "boolean",
+      "default": true
     },
     "sortOrder": {
       "type": "integer"
@@ -115,6 +149,9 @@
       "repeatable": true
     },
     "sku": {
+      "type": "string"
+    },
+    "articleShort": {
       "type": "string"
     },
     "size": {
