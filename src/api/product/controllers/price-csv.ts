@@ -13,6 +13,8 @@ const PRODUCT_COLUMNS = [
   { key: "title", header: "title", width: 35 },
   { key: "slug", header: "slug", width: 35 },
   { key: "isActive", header: "isActive", width: 12 },
+  { key: "isActiveUZ", header: "isActiveUZ", width: 14 },
+  { key: "isActiveRU", header: "isActiveRU", width: 14 },
   { key: "brand", header: "brand", width: 18 },
   { key: "cat", header: "cat", width: 18 },
   { key: "module", header: "module", width: 18 },
@@ -59,6 +61,8 @@ const VARIANT_COLUMNS = [
   { key: "imageFile", header: "imageFile", width: 30 },
   { key: "sortOrder", header: "sortOrder", width: 14 },
   { key: "isActive", header: "isActive", width: 14 },
+  { key: "isActiveUZ", header: "isActiveUZ", width: 14 },
+  { key: "isActiveRU", header: "isActiveRU", width: 14 },
 ];
 
 const SET_ITEM_COLUMNS = [
@@ -75,6 +79,8 @@ const SET_ITEM_COLUMNS = [
   { key: "imageFile", header: "imageFile", width: 34 },
   { key: "sortOrder", header: "sortOrder", width: 14 },
   { key: "isActive", header: "isActive", width: 14 },
+  { key: "isActiveUZ", header: "isActiveUZ", width: 14 },
+  { key: "isActiveRU", header: "isActiveRU", width: 14 },
   { key: "note", header: "note", width: 50 },
 ];
 
@@ -323,9 +329,22 @@ function isSceneExcelRow(row: Record<string, string>, data: any) {
   return module === "scene" || slug.startsWith("scene-");
 }
 
-function forceExcelRowActive(row: Record<string, string>, data: any) {
-  data.isActive = true;
-  data.publishedAt = new Date();
+function applyExcelPublicationState(row: Record<string, string>, data: any) {
+  const active = toBoolOrNull(row.isActive);
+
+  if (active !== null) {
+    data.isActive = active;
+  }
+
+  if (data.isActive === false) {
+    data.publishedAt = null;
+  } else {
+    if (data.isActive === undefined || data.isActive === null) {
+      data.isActive = true;
+    }
+
+    data.publishedAt = new Date();
+  }
 
   if (isSceneExcelRow(row, data)) {
     data.module = "scene";
@@ -515,6 +534,18 @@ function buildProductData(
   const slugRaw = cleanText(row.slug);
   if (slugRaw) data.slug = makeSlug(slugRaw);
   else if (mode === "create" && title) data.slug = makeSlug(`${title}-${sku}`);
+
+  const active = toBoolOrNull(row.isActive);
+  if (active !== null) data.isActive = active;
+  else if (mode === "create") data.isActive = true;
+
+  const activeUZ = toBoolOrNull(row.isActiveUZ);
+  if (activeUZ !== null) data.isActiveUZ = activeUZ;
+  else if (mode === "create") data.isActiveUZ = true;
+
+  const activeRU = toBoolOrNull(row.isActiveRU);
+  if (activeRU !== null) data.isActiveRU = activeRU;
+  else if (mode === "create") data.isActiveRU = false;
 
   const brandNorm = normalizeBrand(row.brand);
   const brandRaw = normLower(row.brand);
@@ -711,7 +742,17 @@ function buildVariantData({
     type: "color",
     group: "color",
     variantKey,
+    isActive: active ?? true,
   };
+
+  const activeUZ = toBoolOrNull(row.isActiveUZ);
+  const activeRU = toBoolOrNull(row.isActiveRU);
+
+  if (activeUZ !== null) data.isActiveUZ = activeUZ;
+  else data.isActiveUZ = true;
+
+  if (activeRU !== null) data.isActiveRU = activeRU;
+  else data.isActiveRU = false;
 
   if (finalUZS !== null) {
     data.priceDeltaUZS = Math.round(finalUZS);
@@ -855,7 +896,6 @@ async function importVariantsFromWorkbook(workbook: ExcelJS.Workbook) {
           documentId: parentProduct.documentId,
           data: {
             variants,
-            isActive: true,
             publishedAt: new Date(),
           },
           status: "published",
@@ -865,7 +905,6 @@ async function importVariantsFromWorkbook(workbook: ExcelJS.Workbook) {
           where: { id: parentProduct.id },
           data: {
             variants,
-            isActive: true,
             publishedAt: new Date(),
           },
         });
@@ -963,7 +1002,17 @@ function buildSetItemData({
     slug: slugRaw ? makeSlug(slugRaw) : undefined,
     quantity: Math.max(1, quantity),
     sort_order: sortOrder,
+    isActive: active ?? true,
   };
+
+  const activeUZ = toBoolOrNull(row.isActiveUZ);
+  const activeRU = toBoolOrNull(row.isActiveRU);
+
+  if (activeUZ !== null) data.isActiveUZ = activeUZ;
+  else data.isActiveUZ = true;
+
+  if (activeRU !== null) data.isActiveRU = activeRU;
+  else data.isActiveRU = false;
 
   if (priceUZS !== null) data.price_uzs = priceUZS;
   if (priceRUB !== null) data.price_rub = priceRUB;
@@ -1090,7 +1139,6 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
           documentId: parentProduct.documentId,
           data: {
             set_items_json: setItems,
-            isActive: true,
             publishedAt: new Date(),
           },
           status: "published",
@@ -1100,7 +1148,6 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
           where: { id: parentProduct.id },
           data: {
             set_items_json: setItems,
-            isActive: true,
             publishedAt: new Date(),
           },
         });
@@ -1137,6 +1184,8 @@ export default {
         "title",
         "slug",
         "isActive",
+        "isActiveUZ",
+        "isActiveRU",
         "brand",
         "cat",
         "module",
@@ -1183,6 +1232,10 @@ export default {
         title: p.title ?? "",
         slug: p.slug ?? "",
         isActive: typeof p.isActive === "boolean" ? String(p.isActive) : "",
+        isActiveUZ:
+          typeof p.isActiveUZ === "boolean" ? String(p.isActiveUZ) : "",
+        isActiveRU:
+          typeof p.isActiveRU === "boolean" ? String(p.isActiveRU) : "",
         brand: p.brand ?? "",
         cat: p.cat ?? "",
         module: p.module ?? "",
@@ -1321,7 +1374,7 @@ export default {
           const itemMode = existing ? "update" : "create";
 
           const built = buildProductData(obj, itemMode);
-          const data = forceExcelRowActive(obj, built.data);
+          const data = applyExcelPublicationState(obj, built.data);
 
           invalid += built.invalid;
 
@@ -1362,7 +1415,7 @@ export default {
                   sku,
                   locale: "en",
                 },
-                status: "published",
+                status: data.isActive === false ? "draft" : "published",
               } as any);
             } catch (createError: any) {
               const fallbackExisting = await findProductBySkuOrSlug(
@@ -1381,7 +1434,7 @@ export default {
                   sku,
                   locale: "en",
                 },
-                status: "published",
+                status: data.isActive === false ? "draft" : "published",
               } as any);
             }
 
@@ -1405,7 +1458,7 @@ export default {
                 sku,
                 locale: "en",
               },
-              status: "published",
+              status: data.isActive === false ? "draft" : "published",
             } as any);
 
             const updatedDocumentId = String(

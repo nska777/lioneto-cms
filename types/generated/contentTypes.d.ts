@@ -1351,6 +1351,8 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       true
     >;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isActiveRU: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    isActiveUZ: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     isDealerActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     isStockTracked: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;

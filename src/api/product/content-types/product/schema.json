@@ -181,6 +181,14 @@
     },
     "set_items_json": {
       "type": "json"
+    },
+    "isActiveUZ": {
+      "type": "boolean",
+      "default": true
+    },
+    "isActiveRU": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
