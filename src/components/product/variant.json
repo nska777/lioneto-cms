@@ -21,6 +21,9 @@
       "type": "string",
       "required": false
     },
+    "variantSku": {
+      "type": "string"
+    },
     "priceDeltaUZS": {
       "type": "integer"
     },

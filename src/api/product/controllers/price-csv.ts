@@ -47,7 +47,7 @@ const PRODUCT_COLUMNS = [
 ];
 
 const VARIANT_COLUMNS = [
-  { key: "parentSku", header: "parentSku", width: 26 },
+  { key: "parentSku", header: "parentSku", width: 30 },
   { key: "color", header: "color", width: 20 },
   { key: "variantKey", header: "variantKey", width: 18 },
   { key: "variantSku", header: "variantSku", width: 32 },
@@ -73,7 +73,7 @@ const VARIANT_COLUMNS = [
 ];
 
 const SET_ITEM_COLUMNS = [
-  { key: "parentSku", header: "parentSku", width: 26 },
+  { key: "parentSku", header: "parentSku", width: 30 },
   { key: "itemSku", header: "itemSku", width: 24 },
   { key: "title", header: "title", width: 35 },
   { key: "slug", header: "slug", width: 35 },
@@ -761,6 +761,8 @@ function buildVariantData({
 
   const variantKey = buildVariantKey(color, row.variantKey);
 
+  const variantSku = cleanText(row.variantSku);
+
   const finalUZS = toNumOrNull(row.priceUZS);
   const finalRUB = toNumOrNull(row.priceRUB);
   const dealerUZS = toNumOrNull(row.dealerPriceUZS);
@@ -777,6 +779,21 @@ function buildVariantData({
     variantKey,
   };
 
+  /**
+   * ВАЖНО:
+   * variantSku — это артикул конкретного варианта.
+   * Например:
+   * white -> 10.210 (Б)
+   * cappuccino -> 10.210 (К)
+   *
+   * Чтобы это сохранялось, в Strapi компоненте product.variant
+   * должно быть поле:
+   * "variantSku": { "type": "string" }
+   */
+  if (variantSku) {
+    data.variantSku = variantSku;
+  }
+
   if (activeUZ !== null) data.isActiveUZ = activeUZ;
   else data.isActiveUZ = true;
 
@@ -786,6 +803,11 @@ function buildVariantData({
   if (dealerActive !== null) data.isDealerActive = dealerActive;
   else data.isDealerActive = true;
 
+  /**
+   * ВАЖНО:
+   * priceDeltaUZS / priceDeltaRUB у нас используются как ИТОГОВАЯ цена варианта,
+   * а не как доплата.
+   */
   if (finalUZS !== null) data.priceDeltaUZS = Math.round(finalUZS);
   if (finalRUB !== null) data.priceDeltaRUB = Math.round(finalRUB);
 
@@ -1084,6 +1106,7 @@ function buildSetItemData({
   };
 
   if (itemKind) data.itemKind = itemKind;
+
   if (addsToArticle !== null) data.addsToArticle = addsToArticle;
   else data.addsToArticle = true;
 
