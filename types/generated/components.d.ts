@@ -39,8 +39,13 @@ export interface ProductVariant extends Struct.ComponentSchema {
     displayName: 'variant';
   };
   attributes: {
+    dealerPriceRUB: Schema.Attribute.Integer;
+    dealerPriceUZS: Schema.Attribute.Integer;
     group: Schema.Attribute.String;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    isActiveRU: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    isActiveUZ: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isDealerActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     priceDeltaRUB: Schema.Attribute.Integer;
     priceDeltaUZS: Schema.Attribute.Integer;
     title: Schema.Attribute.String & Schema.Attribute.Required;

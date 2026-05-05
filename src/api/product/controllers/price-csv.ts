@@ -51,18 +51,25 @@ const VARIANT_COLUMNS = [
   { key: "color", header: "color", width: 20 },
   { key: "variantKey", header: "variantKey", width: 18 },
   { key: "variantSku", header: "variantSku", width: 32 },
+
   { key: "priceUZS", header: "priceUZS", width: 16 },
   { key: "priceRUB", header: "priceRUB", width: 16 },
+  { key: "dealerPriceUZS", header: "dealerPriceUZS", width: 18 },
+  { key: "dealerPriceRUB", header: "dealerPriceRUB", width: 18 },
+
   { key: "oldPriceUZS", header: "oldPriceUZS", width: 16 },
   { key: "oldPriceRUB", header: "oldPriceRUB", width: 16 },
+
   { key: "size", header: "size", width: 24 },
   { key: "material", header: "material", width: 28 },
   { key: "description", header: "description", width: 70 },
   { key: "imageFile", header: "imageFile", width: 30 },
   { key: "sortOrder", header: "sortOrder", width: 14 },
+
   { key: "isActive", header: "isActive", width: 14 },
   { key: "isActiveUZ", header: "isActiveUZ", width: 14 },
   { key: "isActiveRU", header: "isActiveRU", width: 14 },
+  { key: "isDealerActive", header: "isDealerActive", width: 16 },
 ];
 
 const SET_ITEM_COLUMNS = [
@@ -72,15 +79,36 @@ const SET_ITEM_COLUMNS = [
   { key: "slug", header: "slug", width: 35 },
   { key: "article", header: "article", width: 24 },
   { key: "quantity", header: "quantity", width: 12 },
+
   { key: "priceUZS", header: "priceUZS", width: 16 },
+  { key: "priceRUB", header: "priceRUB", width: 16 },
+  { key: "dealerPriceUZS", header: "dealerPriceUZS", width: 18 },
+  { key: "dealerPriceRUB", header: "dealerPriceRUB", width: 18 },
+
+  { key: "groupKey", header: "groupKey", width: 18 },
+  { key: "groupTitle", header: "groupTitle", width: 30 },
+  { key: "groupOrder", header: "groupOrder", width: 14 },
+  { key: "selectionType", header: "selectionType", width: 16 },
+  { key: "isRequired", header: "isRequired", width: 14 },
+
+  { key: "itemKind", header: "itemKind", width: 18 },
+  { key: "addsToArticle", header: "addsToArticle", width: 16 },
+  { key: "articleJoinRule", header: "articleJoinRule", width: 18 },
+  { key: "affectsImage", header: "affectsImage", width: 16 },
+
   { key: "colorKey", header: "colorKey", width: 16 },
   { key: "optionKey", header: "optionKey", width: 18 },
-  { key: "priceRUB", header: "priceRUB", width: 16 },
+
   { key: "imageFile", header: "imageFile", width: 34 },
+  { key: "assembledImageFile", header: "assembledImageFile", width: 36 },
+
   { key: "sortOrder", header: "sortOrder", width: 14 },
+
   { key: "isActive", header: "isActive", width: 14 },
   { key: "isActiveUZ", header: "isActiveUZ", width: 14 },
   { key: "isActiveRU", header: "isActiveRU", width: 14 },
+  { key: "isDealerActive", header: "isDealerActive", width: 16 },
+
   { key: "note", header: "note", width: 50 },
 ];
 
@@ -707,7 +735,6 @@ function buildVariantData({
   mediaFiles,
 }: {
   row: Record<string, string>;
-  parentProduct: any;
   mediaFiles: any[];
 }) {
   const color = cleanText(row.color);
@@ -736,17 +763,19 @@ function buildVariantData({
 
   const finalUZS = toNumOrNull(row.priceUZS);
   const finalRUB = toNumOrNull(row.priceRUB);
+  const dealerUZS = toNumOrNull(row.dealerPriceUZS);
+  const dealerRUB = toNumOrNull(row.dealerPriceRUB);
+
+  const activeUZ = toBoolOrNull(row.isActiveUZ);
+  const activeRU = toBoolOrNull(row.isActiveRU);
+  const dealerActive = toBoolOrNull(row.isDealerActive);
 
   const data: any = {
     title: color,
     type: "color",
     group: "color",
     variantKey,
-    isActive: active ?? true,
   };
-
-  const activeUZ = toBoolOrNull(row.isActiveUZ);
-  const activeRU = toBoolOrNull(row.isActiveRU);
 
   if (activeUZ !== null) data.isActiveUZ = activeUZ;
   else data.isActiveUZ = true;
@@ -754,13 +783,14 @@ function buildVariantData({
   if (activeRU !== null) data.isActiveRU = activeRU;
   else data.isActiveRU = false;
 
-  if (finalUZS !== null) {
-    data.priceDeltaUZS = Math.round(finalUZS);
-  }
+  if (dealerActive !== null) data.isDealerActive = dealerActive;
+  else data.isDealerActive = true;
 
-  if (finalRUB !== null) {
-    data.priceDeltaRUB = Math.round(finalRUB);
-  }
+  if (finalUZS !== null) data.priceDeltaUZS = Math.round(finalUZS);
+  if (finalRUB !== null) data.priceDeltaRUB = Math.round(finalRUB);
+
+  if (dealerUZS !== null) data.dealerPriceUZS = Math.round(dealerUZS);
+  if (dealerRUB !== null) data.dealerPriceRUB = Math.round(dealerRUB);
 
   const imageFile = cleanText(row.imageFile);
   let mediaMissing = false;
@@ -870,13 +900,10 @@ async function importVariantsFromWorkbook(workbook: ExcelJS.Workbook) {
       for (const row of sortedRows) {
         const built = buildVariantData({
           row,
-          parentProduct,
           mediaFiles,
         });
 
-        if (built.mediaMissing) {
-          result.mediaMissing++;
-        }
+        if (built.mediaMissing) result.mediaMissing++;
 
         if (!built.ok || !built.data) {
           result.skippedRows++;
@@ -930,6 +957,12 @@ async function importVariantsFromWorkbook(workbook: ExcelJS.Workbook) {
   return result;
 }
 
+function normalizeSelectionType(v: any) {
+  const s = normLower(v);
+  if (s === "multiple") return "multiple";
+  return "single";
+}
+
 function buildSetItemData({
   row,
   mediaFiles,
@@ -944,16 +977,34 @@ function buildSetItemData({
   const article = cleanText(row.article) || itemSku;
   const slugRaw = cleanText(row.slug);
   const quantity = toNumOrNull(row.quantity) ?? 1;
+
   const priceUZS = toNumOrNull(row.priceUZS);
   const priceRUB = toNumOrNull(row.priceRUB);
+  const dealerPriceUZS = toNumOrNull(row.dealerPriceUZS);
+  const dealerPriceRUB = toNumOrNull(row.dealerPriceRUB);
+
   const sortOrder = toNumOrNull(row.sortOrder) ?? index + 1;
+  const groupOrder = toNumOrNull(row.groupOrder) ?? 999;
+
   const note = cleanText(row.note);
+
+  const groupKeyRaw = cleanText(row.groupKey);
+  const groupTitle = cleanText(row.groupTitle);
 
   const colorKeyRaw = cleanText(row.colorKey);
   const optionKeyRaw = cleanText(row.optionKey);
 
+  const groupKey = groupKeyRaw ? makeSlug(groupKeyRaw) : "default";
   const colorKey = colorKeyRaw ? makeSlug(colorKeyRaw) : "";
   const optionKey = optionKeyRaw ? makeSlug(optionKeyRaw) : "";
+
+  const selectionType = normalizeSelectionType(row.selectionType);
+  const isRequired = toBoolOrNull(row.isRequired);
+  const addsToArticle = toBoolOrNull(row.addsToArticle);
+  const affectsImage = toBoolOrNull(row.affectsImage);
+
+  const itemKind = cleanText(row.itemKind);
+  const articleJoinRule = cleanText(row.articleJoinRule);
 
   if (!title && !itemSku && !article) {
     return {
@@ -974,10 +1025,11 @@ function buildSetItemData({
     };
   }
 
-  const imageFile = cleanText(row.imageFile);
   let mediaMissing = false;
   let image = "";
+  let assembledImage = "";
 
+  const imageFile = cleanText(row.imageFile);
   if (imageFile) {
     const media = findMediaByImageFile(mediaFiles, imageFile);
 
@@ -991,9 +1043,27 @@ function buildSetItemData({
     }
   }
 
+  const assembledImageFile = cleanText(row.assembledImageFile);
+  if (assembledImageFile) {
+    const media = findMediaByImageFile(mediaFiles, assembledImageFile);
+
+    if (media?.url) {
+      assembledImage = String(media.url);
+    } else {
+      mediaMissing = true;
+      strapi.log.warn(
+        `[EXCEL] set item assembled image not found in Media Library: "${assembledImageFile}" parentSku="${row.parentSku}" itemSku="${itemSku}"`,
+      );
+    }
+  }
+
   const baseId = itemSku || article || slugRaw || makeSlug(title);
-  const idParts = [baseId, colorKey, optionKey].filter(Boolean);
+  const idParts = [groupKey, baseId, colorKey, optionKey].filter(Boolean);
   const id = idParts.join("-");
+
+  const activeUZ = toBoolOrNull(row.isActiveUZ);
+  const activeRU = toBoolOrNull(row.isActiveRU);
+  const dealerActive = toBoolOrNull(row.isDealerActive);
 
   const data: any = {
     id,
@@ -1002,11 +1072,26 @@ function buildSetItemData({
     slug: slugRaw ? makeSlug(slugRaw) : undefined,
     quantity: Math.max(1, quantity),
     sort_order: sortOrder,
+
+    groupKey,
+    groupTitle: groupTitle || groupKey,
+    groupOrder,
+
+    selectionType,
+    isRequired: isRequired ?? false,
+
     isActive: active ?? true,
   };
 
-  const activeUZ = toBoolOrNull(row.isActiveUZ);
-  const activeRU = toBoolOrNull(row.isActiveRU);
+  if (itemKind) data.itemKind = itemKind;
+  if (addsToArticle !== null) data.addsToArticle = addsToArticle;
+  else data.addsToArticle = true;
+
+  if (articleJoinRule) data.articleJoinRule = articleJoinRule;
+  else data.articleJoinRule = "plus";
+
+  if (affectsImage !== null) data.affectsImage = affectsImage;
+  else data.affectsImage = true;
 
   if (activeUZ !== null) data.isActiveUZ = activeUZ;
   else data.isActiveUZ = true;
@@ -1014,9 +1099,18 @@ function buildSetItemData({
   if (activeRU !== null) data.isActiveRU = activeRU;
   else data.isActiveRU = false;
 
+  if (dealerActive !== null) data.isDealerActive = dealerActive;
+  else data.isDealerActive = true;
+
   if (priceUZS !== null) data.price_uzs = priceUZS;
   if (priceRUB !== null) data.price_rub = priceRUB;
+
+  if (dealerPriceUZS !== null) data.dealer_price_uzs = dealerPriceUZS;
+  if (dealerPriceRUB !== null) data.dealer_price_rub = dealerPriceRUB;
+
   if (image) data.image = image;
+  if (assembledImage) data.assembledImage = assembledImage;
+
   if (colorKey) data.colorKey = colorKey;
   if (optionKey) data.optionKey = optionKey;
   if (note) data.note = note;
@@ -1096,14 +1190,30 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
       const setItems: any[] = [];
 
       const sortedRows = [...rows].sort((a, b) => {
+        const ga = toNumOrNull(a.groupOrder) ?? 999;
+        const gb = toNumOrNull(b.groupOrder) ?? 999;
+
+        if (ga !== gb) return ga - gb;
+
+        const gka = cleanText(a.groupKey);
+        const gkb = cleanText(b.groupKey);
+
+        if (gka !== gkb) return gka.localeCompare(gkb, "ru");
+
+        const ca = cleanText(a.colorKey);
+        const cb = cleanText(b.colorKey);
+
+        if (ca !== cb) return ca.localeCompare(cb, "ru");
+
+        const oa = cleanText(a.optionKey);
+        const ob = cleanText(b.optionKey);
+
+        if (oa !== ob) return oa.localeCompare(ob, "ru");
+
         const sa = toNumOrNull(a.sortOrder) ?? 999999;
         const sb = toNumOrNull(b.sortOrder) ?? 999999;
 
         if (sa !== sb) return sa - sb;
-
-        const ca = cleanText(a.colorKey);
-        const cb = cleanText(b.colorKey);
-        if (ca !== cb) return ca.localeCompare(cb, "ru");
 
         return String(a.title ?? "").localeCompare(String(b.title ?? ""), "ru");
       });
@@ -1117,9 +1227,7 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
           index: i,
         });
 
-        if (built.mediaMissing) {
-          result.mediaMissing++;
-        }
+        if (built.mediaMissing) result.mediaMissing++;
 
         if (!built.ok || !built.data) {
           result.skippedRows++;
@@ -1231,11 +1339,13 @@ export default {
         articleShort: p.articleShort ?? "",
         title: p.title ?? "",
         slug: p.slug ?? "",
+
         isActive: typeof p.isActive === "boolean" ? String(p.isActive) : "",
         isActiveUZ:
           typeof p.isActiveUZ === "boolean" ? String(p.isActiveUZ) : "",
         isActiveRU:
           typeof p.isActiveRU === "boolean" ? String(p.isActiveRU) : "",
+
         brand: p.brand ?? "",
         cat: p.cat ?? "",
         module: p.module ?? "",

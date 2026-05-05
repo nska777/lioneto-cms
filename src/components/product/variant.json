@@ -27,6 +27,24 @@
     "priceDeltaRUB": {
       "type": "integer"
     },
+    "dealerPriceUZS": {
+      "type": "integer"
+    },
+    "dealerPriceRUB": {
+      "type": "integer"
+    },
+    "isActiveUZ": {
+      "type": "boolean",
+      "default": true
+    },
+    "isActiveRU": {
+      "type": "boolean",
+      "default": false
+    },
+    "isDealerActive": {
+      "type": "boolean",
+      "default": true
+    },
     "image": {
       "type": "media",
       "multiple": false,
