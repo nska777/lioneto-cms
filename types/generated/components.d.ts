@@ -53,6 +53,7 @@ export interface ProductVariant extends Struct.ComponentSchema {
     variantKey: Schema.Attribute.Enumeration<
       ['white', 'cappuccino', 'simple', 'lift']
     >;
+    variantSku: Schema.Attribute.String;
   };
 }
 

@@ -145,6 +145,8 @@ const CAT_ALIASES: Record<string, string> = {
   tumbi: "tumby",
   tumba: "tumby",
   tumby: "tumby",
+  "tumba-tv": "tumby",
+  "tumby-tv": "tumby",
 
   krovat: "krovati",
   krovati: "krovati",
@@ -174,7 +176,6 @@ const CAT_ALIASES: Record<string, string> = {
   stellaj: "stellaji",
   stellaji: "stellaji",
 
-  "tumby-tv": "tumby",
   dekor: "fasadi",
   scene: "bedrooms",
 };
@@ -195,6 +196,12 @@ function cleanText(v: any) {
   if (!s) return "";
   if (PLACEHOLDER_VALUES.has(s)) return "";
   return s;
+}
+
+function cleanLongText(v: any, max = 5000) {
+  const s = cleanText(v);
+  if (!s) return "";
+  return s.length > max ? s.slice(0, max) : s;
 }
 
 function isBadSku(v: any) {
@@ -385,22 +392,61 @@ function applyExcelPublicationState(row: Record<string, string>, data: any) {
   return data;
 }
 
+async function unpublishProductIfPossible(product: any) {
+  const documentId = String(product?.documentId ?? "").trim();
+
+  if (!documentId) return;
+
+  try {
+    await strapi.documents(UID).unpublish({
+      documentId,
+    } as any);
+  } catch (e: any) {
+    strapi.log.warn(
+      `[EXCEL] failed to unpublish product documentId=${documentId}: ${
+        e?.message ?? e
+      }`,
+    );
+  }
+}
+
+/**
+ * ВАЖНО:
+ * Не считаем товар скрытым только потому, что isActiveRU=false.
+ * У нас RU может быть выключен, а UZ включен.
+ */
+function isParentGloballyHidden(product: any) {
+  if (product?.isActive === false) return true;
+
+  const uz = product?.isActiveUZ;
+  const ru = product?.isActiveRU;
+
+  if (uz === false && ru === false) return true;
+
+  return false;
+}
+
 async function findProductBySkuOrSlug(sku: string, slug: string) {
   const cleanSku = String(sku ?? "").trim();
   const cleanSlug = String(slug ?? "").trim();
 
+  const select = [
+    "id",
+    "documentId",
+    "sku",
+    "slug",
+    "publishedAt",
+    "isActive",
+    "isActiveUZ",
+    "isActiveRU",
+    "priceUZS",
+    "priceRUB",
+  ];
+
   if (cleanSku) {
     const bySku = await strapi.db.query(UID).findMany({
       where: { sku: cleanSku },
-      select: [
-        "id",
-        "documentId",
-        "sku",
-        "slug",
-        "publishedAt",
-        "priceUZS",
-        "priceRUB",
-      ],
+      select,
       orderBy: { id: "desc" },
       limit: 1,
     });
@@ -411,15 +457,7 @@ async function findProductBySkuOrSlug(sku: string, slug: string) {
   if (cleanSlug) {
     const bySlug = await strapi.db.query(UID).findMany({
       where: { slug: cleanSlug },
-      select: [
-        "id",
-        "documentId",
-        "sku",
-        "slug",
-        "publishedAt",
-        "priceUZS",
-        "priceRUB",
-      ],
+      select,
       orderBy: { id: "desc" },
       limit: 1,
     });
@@ -442,6 +480,9 @@ async function findProductBySku(sku: string) {
       "sku",
       "slug",
       "publishedAt",
+      "isActive",
+      "isActiveUZ",
+      "isActiveRU",
       "priceUZS",
       "priceRUB",
     ],
@@ -484,8 +525,10 @@ async function deactivateProductsNotInExcel(
             isActive: false,
             publishedAt: null,
           },
-          status: "published",
+          status: "draft",
         } as any);
+
+        await unpublishProductIfPossible({ documentId });
       } else {
         await strapi.db.query(UID).update({
           where: { id },
@@ -626,7 +669,7 @@ function buildProductData(
   const material = cleanText(row.material);
   if (material) data.material = material;
 
-  const description = cleanText(row.description);
+  const description = cleanLongText(row.description, 5000);
   if (description) data.description = description;
 
   const boolFields = ["isStockTracked", "isDealerActive"];
@@ -760,7 +803,6 @@ function buildVariantData({
   }
 
   const variantKey = buildVariantKey(color, row.variantKey);
-
   const variantSku = cleanText(row.variantSku);
 
   const finalUZS = toNumOrNull(row.priceUZS);
@@ -779,17 +821,6 @@ function buildVariantData({
     variantKey,
   };
 
-  /**
-   * ВАЖНО:
-   * variantSku — это артикул конкретного варианта.
-   * Например:
-   * white -> 10.210 (Б)
-   * cappuccino -> 10.210 (К)
-   *
-   * Чтобы это сохранялось, в Strapi компоненте product.variant
-   * должно быть поле:
-   * "variantSku": { "type": "string" }
-   */
   if (variantSku) {
     data.variantSku = variantSku;
   }
@@ -804,8 +835,7 @@ function buildVariantData({
   else data.isDealerActive = true;
 
   /**
-   * ВАЖНО:
-   * priceDeltaUZS / priceDeltaRUB у нас используются как ИТОГОВАЯ цена варианта,
+   * priceDeltaUZS / priceDeltaRUB используются как ИТОГОВАЯ цена варианта,
    * а не как доплата.
    */
   if (finalUZS !== null) data.priceDeltaUZS = Math.round(finalUZS);
@@ -908,6 +938,12 @@ async function importVariantsFromWorkbook(workbook: ExcelJS.Workbook) {
         continue;
       }
 
+      if (isParentGloballyHidden(parentProduct)) {
+        result.skippedRows += rows.length;
+        await unpublishProductIfPossible(parentProduct);
+        continue;
+      }
+
       const variants: any[] = [];
 
       const sortedRows = [...rows].sort((a, b) => {
@@ -945,7 +981,6 @@ async function importVariantsFromWorkbook(workbook: ExcelJS.Workbook) {
           documentId: parentProduct.documentId,
           data: {
             variants,
-            publishedAt: new Date(),
           },
           status: "published",
         } as any);
@@ -954,7 +989,6 @@ async function importVariantsFromWorkbook(workbook: ExcelJS.Workbook) {
           where: { id: parentProduct.id },
           data: {
             variants,
-            publishedAt: new Date(),
           },
         });
       }
@@ -1210,6 +1244,12 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
         continue;
       }
 
+      if (isParentGloballyHidden(parentProduct)) {
+        result.skippedRows += rows.length;
+        await unpublishProductIfPossible(parentProduct);
+        continue;
+      }
+
       const setItems: any[] = [];
 
       const sortedRows = [...rows].sort((a, b) => {
@@ -1270,7 +1310,6 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
           documentId: parentProduct.documentId,
           data: {
             set_items_json: setItems,
-            publishedAt: new Date(),
           },
           status: "published",
         } as any);
@@ -1279,7 +1318,6 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
           where: { id: parentProduct.id },
           data: {
             set_items_json: setItems,
-            publishedAt: new Date(),
           },
         });
       }
@@ -1579,6 +1617,12 @@ export default {
             if (createdDocumentId) processedDocumentIds.add(createdDocumentId);
             if (Number.isFinite(createdId)) processedIds.add(createdId);
 
+            if (data.isActive === false && createdDocumentId) {
+              await unpublishProductIfPossible({
+                documentId: createdDocumentId,
+              });
+            }
+
             created++;
             continue;
           }
@@ -1594,9 +1638,16 @@ export default {
               status: data.isActive === false ? "draft" : "published",
             } as any);
 
+            if (data.isActive === false) {
+              await unpublishProductIfPossible({
+                documentId: existing.documentId,
+              });
+            }
+
             const updatedDocumentId = String(
               updatedEntity?.documentId ?? existing.documentId ?? "",
             ).trim();
+
             const updatedId = Number(updatedEntity?.id ?? existing.id);
 
             if (updatedDocumentId) processedDocumentIds.add(updatedDocumentId);
