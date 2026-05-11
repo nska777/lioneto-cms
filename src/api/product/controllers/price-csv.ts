@@ -1345,6 +1345,11 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
 export default {
   async export(ctx: any) {
     const products = await strapi.db.query(UID).findMany({
+      where: {
+        isActive: {
+          $ne: false,
+        },
+      },
       select: [
         "id",
         "documentId",
@@ -1379,8 +1384,16 @@ export default {
         "size",
         "material",
         "description",
+        "set_items_json",
       ],
-      orderBy: { id: "asc" },
+      populate: {
+        variants: {
+          populate: {
+            image: true,
+          },
+        },
+      },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       limit: 10000,
     });
 
@@ -1388,58 +1401,10 @@ export default {
     workbook.creator = "Lioneto CMS";
     workbook.created = new Date();
 
-    const sheet = workbook.addWorksheet(SHEET_PRODUCTS);
-    sheet.columns = PRODUCT_COLUMNS;
-
-    sheet.getRow(1).font = { bold: true };
-    sheet.views = [{ state: "frozen", ySplit: 1 }];
-
-    for (const p of products ?? []) {
-      sheet.addRow({
-        sku: p.sku ?? "",
-        articleShort: p.articleShort ?? "",
-        title: p.title ?? "",
-        slug: p.slug ?? "",
-
-        isActive: typeof p.isActive === "boolean" ? String(p.isActive) : "",
-        isActiveUZ:
-          typeof p.isActiveUZ === "boolean" ? String(p.isActiveUZ) : "",
-        isActiveRU:
-          typeof p.isActiveRU === "boolean" ? String(p.isActiveRU) : "",
-
-        brand: p.brand ?? "",
-        cat: p.cat ?? "",
-        module: p.module ?? "",
-        collection: p.collection ?? "",
-        collectionBadge: p.collectionBadge ?? "",
-
-        priceUZS: p.priceUZS ?? "",
-        priceRUB: p.priceRUB ?? "",
-        priceKZ: p.priceKZ ?? "",
-        priceTJ: p.priceTJ ?? "",
-
-        oldPriceUZS: p.oldPriceUZS ?? "",
-        oldPriceRUB: p.oldPriceRUB ?? "",
-
-        dealerPriceUZS: p.dealerPriceUZS ?? "",
-        dealerPriceRUB: p.dealerPriceRUB ?? "",
-        dealerPriceKZ: p.dealerPriceKZ ?? "",
-        dealerPriceTJ: p.dealerPriceTJ ?? "",
-
-        stockQty: p.stockQty ?? "",
-        reservedQty: p.reservedQty ?? "",
-        isStockTracked:
-          typeof p.isStockTracked === "boolean" ? String(p.isStockTracked) : "",
-        isDealerActive:
-          typeof p.isDealerActive === "boolean" ? String(p.isDealerActive) : "",
-
-        sortOrder: p.sortOrder ?? "",
-        color: p.color ?? "",
-        size: p.size ?? "",
-        material: p.material ?? "",
-        description: p.description ?? "",
-      });
-    }
+    const productSheet = workbook.addWorksheet(SHEET_PRODUCTS);
+    productSheet.columns = PRODUCT_COLUMNS;
+    productSheet.getRow(1).font = { bold: true };
+    productSheet.views = [{ state: "frozen", ySplit: 1 }];
 
     const variantSheet = workbook.addWorksheet(SHEET_VARIANTS);
     variantSheet.columns = VARIANT_COLUMNS;
@@ -1450,6 +1415,321 @@ export default {
     setItemsSheet.columns = SET_ITEM_COLUMNS;
     setItemsSheet.getRow(1).font = { bold: true };
     setItemsSheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    function boolToExcel(v: any) {
+      return typeof v === "boolean" ? String(v) : "";
+    }
+
+    function valueOrEmpty(v: any) {
+      if (v === null || v === undefined) return "";
+      return v;
+    }
+
+    function mediaToFileName(media: any) {
+      if (!media) return "";
+
+      if (typeof media === "string") {
+        return media.replace(/\\/g, "/").split("/").pop() || "";
+      }
+
+      const direct =
+        media.name ||
+        media.fileName ||
+        media.url ||
+        media.hash ||
+        media.data?.attributes?.name ||
+        media.data?.attributes?.url ||
+        "";
+
+      return String(direct || "")
+        .replace(/\\/g, "/")
+        .split("/")
+        .pop();
+    }
+
+    function normalizeSetItems(raw: any): any[] {
+      if (!raw) return [];
+
+      if (Array.isArray(raw)) return raw;
+
+      if (typeof raw === "string") {
+        try {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      return [];
+    }
+
+    function getSetItemValue(item: any, keys: string[]) {
+      for (const key of keys) {
+        const value = item?.[key];
+
+        if (value !== null && value !== undefined && value !== "") {
+          return value;
+        }
+      }
+
+      return "";
+    }
+
+    let exportedProducts = 0;
+    let exportedVariants = 0;
+    let exportedSetItems = 0;
+
+    for (const p of products ?? []) {
+      if (p?.isActive === false) continue;
+      if (p?.isActiveUZ === false && p?.isActiveRU === false) continue;
+
+      const parentSku = String(p.sku ?? "").trim();
+      if (!parentSku) continue;
+
+      productSheet.addRow({
+        sku: parentSku,
+        articleShort: valueOrEmpty(p.articleShort),
+        title: valueOrEmpty(p.title),
+        slug: valueOrEmpty(p.slug),
+
+        isActive: boolToExcel(p.isActive),
+        isActiveUZ: boolToExcel(p.isActiveUZ),
+        isActiveRU: boolToExcel(p.isActiveRU),
+
+        brand: valueOrEmpty(p.brand),
+        cat: valueOrEmpty(p.cat),
+        module: valueOrEmpty(p.module),
+        collection: valueOrEmpty(p.collection),
+        collectionBadge: valueOrEmpty(p.collectionBadge),
+
+        priceUZS: valueOrEmpty(p.priceUZS),
+        priceRUB: valueOrEmpty(p.priceRUB),
+        priceKZ: valueOrEmpty(p.priceKZ),
+        priceTJ: valueOrEmpty(p.priceTJ),
+
+        oldPriceUZS: valueOrEmpty(p.oldPriceUZS),
+        oldPriceRUB: valueOrEmpty(p.oldPriceRUB),
+
+        dealerPriceUZS: valueOrEmpty(p.dealerPriceUZS),
+        dealerPriceRUB: valueOrEmpty(p.dealerPriceRUB),
+        dealerPriceKZ: valueOrEmpty(p.dealerPriceKZ),
+        dealerPriceTJ: valueOrEmpty(p.dealerPriceTJ),
+
+        stockQty: valueOrEmpty(p.stockQty),
+        reservedQty: valueOrEmpty(p.reservedQty),
+        isStockTracked: boolToExcel(p.isStockTracked),
+        isDealerActive: boolToExcel(p.isDealerActive),
+
+        sortOrder: valueOrEmpty(p.sortOrder),
+        color: valueOrEmpty(p.color),
+        size: valueOrEmpty(p.size),
+        material: valueOrEmpty(p.material),
+        description: valueOrEmpty(p.description),
+      });
+
+      exportedProducts++;
+
+      const variants = Array.isArray(p.variants) ? p.variants : [];
+
+      const sortedVariants = [...variants].sort((a: any, b: any) => {
+        const sa = Number(a?.sortOrder ?? 999999);
+        const sb = Number(b?.sortOrder ?? 999999);
+
+        if (sa !== sb) return sa - sb;
+
+        return String(a?.title ?? "").localeCompare(
+          String(b?.title ?? ""),
+          "ru",
+        );
+      });
+
+      for (const variant of sortedVariants) {
+        if (!variant) continue;
+
+        if (variant.isActive === false) continue;
+        if (variant.isActiveUZ === false && variant.isActiveRU === false) {
+          continue;
+        }
+
+        const color = variant.title || variant.color || "";
+        if (!color) continue;
+
+        variantSheet.addRow({
+          parentSku,
+          color,
+          variantKey: valueOrEmpty(variant.variantKey),
+          variantSku: valueOrEmpty(variant.variantSku),
+
+          /**
+           * ВАЖНО:
+           * priceDeltaUZS / priceDeltaRUB у нас используются как финальные цены варианта,
+           * не как доплата.
+           */
+          priceUZS: valueOrEmpty(variant.priceDeltaUZS),
+          priceRUB: valueOrEmpty(variant.priceDeltaRUB),
+
+          dealerPriceUZS: valueOrEmpty(variant.dealerPriceUZS),
+          dealerPriceRUB: valueOrEmpty(variant.dealerPriceRUB),
+
+          oldPriceUZS: valueOrEmpty(variant.oldPriceUZS),
+          oldPriceRUB: valueOrEmpty(variant.oldPriceRUB),
+
+          size: valueOrEmpty(variant.size),
+          material: valueOrEmpty(variant.material),
+          description: valueOrEmpty(variant.description),
+          imageFile: mediaToFileName(variant.image),
+
+          sortOrder: valueOrEmpty(variant.sortOrder),
+
+          isActive: boolToExcel(
+            typeof variant.isActive === "boolean" ? variant.isActive : true,
+          ),
+          isActiveUZ: boolToExcel(variant.isActiveUZ),
+          isActiveRU: boolToExcel(variant.isActiveRU),
+          isDealerActive: boolToExcel(variant.isDealerActive),
+        });
+
+        exportedVariants++;
+      }
+
+      const setItems = normalizeSetItems(p.set_items_json);
+
+      const sortedSetItems = [...setItems].sort((a: any, b: any) => {
+        const ga = Number(a?.groupOrder ?? a?.group_order ?? 999);
+        const gb = Number(b?.groupOrder ?? b?.group_order ?? 999);
+
+        if (ga !== gb) return ga - gb;
+
+        const gka = String(a?.groupKey ?? "");
+        const gkb = String(b?.groupKey ?? "");
+
+        if (gka !== gkb) return gka.localeCompare(gkb, "ru");
+
+        const ca = String(a?.colorKey ?? "");
+        const cb = String(b?.colorKey ?? "");
+
+        if (ca !== cb) return ca.localeCompare(cb, "ru");
+
+        const oa = String(a?.optionKey ?? "");
+        const ob = String(b?.optionKey ?? "");
+
+        if (oa !== ob) return oa.localeCompare(ob, "ru");
+
+        const sa = Number(a?.sort_order ?? a?.sortOrder ?? 999999);
+        const sb = Number(b?.sort_order ?? b?.sortOrder ?? 999999);
+
+        if (sa !== sb) return sa - sb;
+
+        return String(a?.title ?? "").localeCompare(
+          String(b?.title ?? ""),
+          "ru",
+        );
+      });
+
+      for (const item of sortedSetItems) {
+        if (!item) continue;
+
+        if (item.isActive === false) continue;
+        if (item.isActiveUZ === false && item.isActiveRU === false) continue;
+
+        setItemsSheet.addRow({
+          parentSku,
+
+          itemSku: getSetItemValue(item, ["itemSku", "sku"]),
+          title: getSetItemValue(item, ["title"]),
+          slug: getSetItemValue(item, ["slug"]),
+          article: getSetItemValue(item, ["article"]),
+          quantity: getSetItemValue(item, ["quantity"]),
+
+          priceUZS: getSetItemValue(item, ["priceUZS", "price_uzs"]),
+          priceRUB: getSetItemValue(item, ["priceRUB", "price_rub"]),
+          dealerPriceUZS: getSetItemValue(item, [
+            "dealerPriceUZS",
+            "dealer_price_uzs",
+          ]),
+          dealerPriceRUB: getSetItemValue(item, [
+            "dealerPriceRUB",
+            "dealer_price_rub",
+          ]),
+
+          groupKey: getSetItemValue(item, ["groupKey", "group_key"]),
+          groupTitle: getSetItemValue(item, ["groupTitle", "group_title"]),
+          groupOrder: getSetItemValue(item, ["groupOrder", "group_order"]),
+          selectionType: getSetItemValue(item, [
+            "selectionType",
+            "selection_type",
+          ]),
+          isRequired: boolToExcel(item.isRequired),
+
+          itemKind: getSetItemValue(item, ["itemKind", "item_kind"]),
+          addsToArticle: boolToExcel(item.addsToArticle),
+          articleJoinRule: getSetItemValue(item, [
+            "articleJoinRule",
+            "article_join_rule",
+          ]),
+          affectsImage: boolToExcel(item.affectsImage),
+
+          colorKey: getSetItemValue(item, ["colorKey", "color_key"]),
+          optionKey: getSetItemValue(item, ["optionKey", "option_key"]),
+
+          imageFile: mediaToFileName(getSetItemValue(item, ["image"])),
+          assembledImageFile: mediaToFileName(
+            getSetItemValue(item, ["assembledImage", "assembled_image"]),
+          ),
+
+          sortOrder: getSetItemValue(item, ["sortOrder", "sort_order"]),
+
+          isActive: boolToExcel(
+            typeof item.isActive === "boolean" ? item.isActive : true,
+          ),
+          isActiveUZ: boolToExcel(item.isActiveUZ),
+          isActiveRU: boolToExcel(item.isActiveRU),
+          isDealerActive: boolToExcel(item.isDealerActive),
+
+          note: getSetItemValue(item, ["note"]),
+        });
+
+        exportedSetItems++;
+      }
+    }
+
+    productSheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: PRODUCT_COLUMNS.length,
+      },
+    };
+
+    variantSheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: VARIANT_COLUMNS.length,
+      },
+    };
+
+    setItemsSheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: SET_ITEM_COLUMNS.length,
+      },
+    };
+
+    strapi.log.info(
+      `[EXCEL] export done: products=${exportedProducts}, variants=${exportedVariants}, setItems=${exportedSetItems}`,
+    );
 
     const buffer = await workbook.xlsx.writeBuffer();
 
