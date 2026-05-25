@@ -189,6 +189,9 @@
     "isActiveRU": {
       "type": "boolean",
       "default": false
+    },
+    "oldPriceKZ": {
+      "type": "decimal"
     }
   }
 }

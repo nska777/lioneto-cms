@@ -1373,6 +1373,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     material: Schema.Attribute.String;
     media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     module: Schema.Attribute.String;
+    oldPriceKZ: Schema.Attribute.Decimal;
     oldPriceRUB: Schema.Attribute.Integer;
     oldPriceUZS: Schema.Attribute.Integer;
     priceKZ: Schema.Attribute.Integer;
