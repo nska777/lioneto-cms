@@ -28,6 +28,7 @@ const PRODUCT_COLUMNS = [
 
   { key: "oldPriceUZS", header: "oldPriceUZS", width: 16 },
   { key: "oldPriceRUB", header: "oldPriceRUB", width: 16 },
+  { key: "oldPriceKZ", header: "oldPriceKZ", width: 16 },
 
   { key: "dealerPriceUZS", header: "dealerPriceUZS", width: 18 },
   { key: "dealerPriceRUB", header: "dealerPriceRUB", width: 18 },
@@ -690,6 +691,7 @@ function buildProductData(
     "priceTJ",
     "oldPriceUZS",
     "oldPriceRUB",
+    "oldPriceKZ",
     "dealerPriceUZS",
     "dealerPriceRUB",
     "dealerPriceKZ",
@@ -1510,6 +1512,7 @@ export default {
 
         oldPriceUZS: valueOrEmpty(p.oldPriceUZS),
         oldPriceRUB: valueOrEmpty(p.oldPriceRUB),
+        oldPriceKZ: valueOrEmpty(p.oldPriceKZ),
 
         dealerPriceUZS: valueOrEmpty(p.dealerPriceUZS),
         dealerPriceRUB: valueOrEmpty(p.dealerPriceRUB),

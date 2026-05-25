@@ -678,7 +678,15 @@ export interface ApiDealerFileDealerFile extends Struct.CollectionTypeSchema {
   };
   attributes: {
     collectionSlug: Schema.Attribute.Enumeration<
-      ['amber', 'scandy', 'elizabeth', 'salvador', 'pitti', 'buongiorno']
+      [
+        'amber',
+        'scandy',
+        'elizabeth',
+        'salvador',
+        'pitti',
+        'buongiorno',
+        'request-form',
+      ]
     > &
       Schema.Attribute.Required;
     collectionTitle: Schema.Attribute.String;
