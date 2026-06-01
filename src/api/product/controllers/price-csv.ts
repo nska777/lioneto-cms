@@ -1373,6 +1373,7 @@ export default {
         "priceTJ",
         "oldPriceUZS",
         "oldPriceRUB",
+        "oldPriceKZ",
         "dealerPriceUZS",
         "dealerPriceRUB",
         "dealerPriceKZ",
@@ -2016,4 +2017,52 @@ export default {
       };
     }
   },
+
+  async clearCatalog(ctx: any) {
+  try {
+    const confirm = String(ctx.request?.body?.confirm ?? "").trim();
+
+    if (confirm !== "DELETE_ALL_PRODUCTS") {
+      ctx.status = 400;
+      ctx.body = {
+        ok: false,
+        message: "Для очистки каталога нужно подтверждение DELETE_ALL_PRODUCTS",
+      };
+      return;
+    }
+
+    const beforeCount = await strapi.db.query(UID).count();
+
+    strapi.log.warn(`[EXCEL] clearCatalog started. Products before=${beforeCount}`);
+
+    await strapi.db.query(UID).deleteMany({
+      where: {},
+    });
+
+    const afterCount = await strapi.db.query(UID).count();
+    const deleted = Math.max(0, beforeCount - afterCount);
+
+    strapi.log.warn(
+      `[EXCEL] clearCatalog finished. Deleted=${deleted}, after=${afterCount}`,
+    );
+
+    ctx.body = {
+      ok: true,
+      deleted,
+      beforeCount,
+      afterCount,
+      message: `Каталог очищен. Удалено товаров: ${deleted}`,
+    };
+  } catch (error: any) {
+    strapi.log.error("[EXCEL] clearCatalog failed", error);
+
+    ctx.status = 500;
+    ctx.body = {
+      ok: false,
+      message: "Ошибка очистки каталога",
+      error: error?.message ?? String(error),
+    };
+  }
+},
+
 };

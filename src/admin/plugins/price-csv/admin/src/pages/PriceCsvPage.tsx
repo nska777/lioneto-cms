@@ -3,7 +3,7 @@ import { Box, Button, Flex, Typography } from "@strapi/design-system";
 import { useNotification } from "@strapi/admin/strapi-admin";
 
 type ImportMode = "sync" | "replace";
-type BusyState = null | ImportMode;
+type BusyState = null | ImportMode | "clear";
 
 type ImportResult = {
   ok?: boolean;
@@ -13,7 +13,9 @@ type ImportResult = {
   skipped?: number;
   invalid?: number;
   deactivated?: number;
+  deleted?: number;
   errors?: string[];
+  message?: string;
 };
 
 const PriceCsvPage = () => {
@@ -35,6 +37,7 @@ const PriceCsvPage = () => {
   const modeLabel = useMemo(() => {
     if (busy === "replace") return "Замена каталога";
     if (busy === "sync") return "Обновление каталога";
+    if (busy === "clear") return "Очистка каталога";
     return "";
   }, [busy]);
 
@@ -53,6 +56,96 @@ const PriceCsvPage = () => {
     setRawError("");
 
     fileRef.current?.click();
+  };
+
+  const clearCatalog = async () => {
+    if (busy) return;
+
+    const firstConfirm = window.confirm(
+      "ВНИМАНИЕ! Это физически удалит ВСЕ товары из Strapi. Медиафайлы и картинки НЕ удаляются. Перед очисткой обязательно выгрузите backup Excel. Продолжить?",
+    );
+
+    if (!firstConfirm) return;
+
+    const text = window.prompt(
+      "Для подтверждения напишите точно: DELETE_ALL_PRODUCTS",
+    );
+
+    if (text !== "DELETE_ALL_PRODUCTS") {
+      window.alert("Очистка отменена. Подтверждение введено неверно.");
+      return;
+    }
+
+    try {
+      setBusy("clear");
+      setUploadProgress(20);
+      setSelectedFileName("");
+      setResult(null);
+      setRawError("");
+      setStatusText("Очистка каталога началась…");
+
+      const res = await fetch("/api/price-clear-catalog", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          confirm: "DELETE_ALL_PRODUCTS",
+        }),
+      });
+
+      let payload: ImportResult = {};
+
+      try {
+        payload = await res.json();
+      } catch {
+        payload = {};
+      }
+
+      console.log("Catalog clear response:", payload);
+
+      if (!res.ok || !payload.ok) {
+        const msg =
+          payload?.message ||
+          payload?.errors?.[0] ||
+          `Ошибка очистки каталога (${res.status})`;
+
+        setRawError(msg);
+        setStatusText("Ошибка очистки каталога");
+
+        notification.toggle({
+          type: "warning",
+          message: msg,
+        });
+
+        return;
+      }
+
+      setUploadProgress(100);
+      setResult(payload);
+      setStatusText(`Каталог очищен. Удалено товаров: ${payload.deleted ?? 0}`);
+
+      notification.toggle({
+        type: "success",
+        message: `Каталог очищен. Удалено товаров: ${payload.deleted ?? 0}`,
+      });
+
+      window.alert(`Каталог очищен. Удалено товаров: ${payload.deleted ?? 0}`);
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : "Ошибка очистки каталога";
+
+      setRawError(msg);
+      setStatusText("Ошибка очистки каталога");
+
+      notification.toggle({
+        type: "warning",
+        message: msg,
+      });
+    } finally {
+      setBusy(null);
+    }
   };
 
   const importCatalog = async (file?: File) => {
@@ -180,7 +273,7 @@ const PriceCsvPage = () => {
         </Typography>
       </Box>
 
-      <Flex gap={4} marginTop={6}>
+      <Flex gap={4} marginTop={6} wrap="wrap">
         <Button onClick={exportCatalog} disabled={isBusy}>
           📤 Выгрузить каталог (Excel)
         </Button>
@@ -210,12 +303,18 @@ const PriceCsvPage = () => {
             ? "Замена каталога…"
             : "⚠️ Заменить каталог полностью"}
         </Button>
+
+        <Button variant="danger" disabled={isBusy} onClick={clearCatalog}>
+          {busy === "clear" ? "Очистка…" : "🗑 Очистить каталог"}
+        </Button>
       </Flex>
 
       <Box marginTop={5}>
         <Typography variant="pi" textColor="neutral600">
           «Обновить каталог» — обновляет товары из Excel и добавляет новые.
           «Заменить каталог полностью» — скрывает товары, которых нет в Excel.
+          «Очистить каталог» — физически удаляет все товары из Strapi, но не
+          удаляет картинки из Media Library.
         </Typography>
       </Box>
 
@@ -231,7 +330,7 @@ const PriceCsvPage = () => {
           }}
         >
           <Typography variant="delta">
-            {isBusy ? modeLabel : "Результат импорта"}
+            {isBusy ? modeLabel : "Результат операции"}
           </Typography>
 
           {selectedFileName ? (
@@ -257,7 +356,7 @@ const PriceCsvPage = () => {
                   height: "100%",
                   width: `${uploadProgress}%`,
                   borderRadius: 999,
-                  background: "#7B61FF",
+                  background: busy === "clear" ? "#D02B20" : "#7B61FF",
                   transition: "width 0.2s ease",
                 }}
               />
@@ -273,6 +372,16 @@ const PriceCsvPage = () => {
           {result ? (
             <Box marginTop={5}>
               <Flex gap={3} wrap="wrap">
+                {typeof result.deleted === "number" ? (
+                  <Box
+                    padding={3}
+                    style={{ border: "1px solid #333", borderRadius: 10 }}
+                  >
+                    <Typography variant="pi">Удалено товаров</Typography>
+                    <Typography variant="beta">{result.deleted}</Typography>
+                  </Box>
+                ) : null}
+
                 <Box
                   padding={3}
                   style={{ border: "1px solid #333", borderRadius: 10 }}
@@ -315,6 +424,14 @@ const PriceCsvPage = () => {
                   </Typography>
                 </Box>
               </Flex>
+
+              {result.message ? (
+                <Box marginTop={4}>
+                  <Typography variant="pi" textColor="neutral600">
+                    {result.message}
+                  </Typography>
+                </Box>
+              ) : null}
 
               {Array.isArray(result.errors) && result.errors.length > 0 ? (
                 <Box marginTop={5}>

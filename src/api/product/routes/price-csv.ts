@@ -12,5 +12,11 @@ export default {
       handler: "price-csv.import",
       config: { auth: false },
     },
+    {
+      method: "POST",
+      path: "/price-clear-catalog",
+      handler: "price-csv.clearCatalog",
+      config: { auth: false },
+    },
   ],
 };
