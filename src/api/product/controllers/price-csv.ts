@@ -1346,15 +1346,12 @@ async function importSetItemsFromWorkbook(workbook: ExcelJS.Workbook) {
 
 export default {
   async export(ctx: any) {
-    const products = await strapi.db.query(UID).findMany({
-      where: {
-        isActive: {
-          $ne: false,
-        },
-      },
+    const rawProducts = await strapi.db.query(UID).findMany({
       select: [
         "id",
         "documentId",
+        "publishedAt",
+        "updatedAt",
         "sku",
         "articleShort",
         "title",
@@ -1398,6 +1395,118 @@ export default {
       },
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       limit: 10000,
+    });
+
+    const productMap = new Map<string, any>();
+    let duplicateProductsSkipped = 0;
+
+    for (const p of rawProducts ?? []) {
+      /**
+       * В Strapi 5 db.query может вернуть несколько физических строк одного товара:
+       * draft/published версии, а иногда и старые document-дубли после импортов.
+       * Для Excel главным ключом является sku, поэтому дедублируем СНАЧАЛА по sku.
+       * documentId оставляем только как запасной ключ, если sku пустой.
+       */
+      const skuKey = String(p?.sku ?? "").trim();
+      const slugKey = String(p?.slug ?? "").trim();
+      const documentKey = String(p?.documentId ?? "").trim();
+
+      const key = skuKey || slugKey || documentKey || String(p?.id ?? "").trim();
+
+      if (!key) continue;
+
+      const existing = productMap.get(key);
+
+      if (!existing) {
+        productMap.set(key, p);
+        continue;
+      }
+
+      duplicateProductsSkipped++;
+
+      const existingPublished = Boolean(existing?.publishedAt);
+      const currentPublished = Boolean(p?.publishedAt);
+
+      if (!existingPublished && currentPublished) {
+        productMap.set(key, p);
+        continue;
+      }
+
+      if (existingPublished === currentPublished) {
+        const existingUpdated = new Date(existing?.updatedAt ?? 0).getTime();
+        const currentUpdated = new Date(p?.updatedAt ?? 0).getTime();
+
+        if (currentUpdated > existingUpdated) {
+          productMap.set(key, p);
+        }
+      }
+    }
+
+    const BRAND_ORDER = [
+      "amber",
+      "scandy",
+      "elizabeth",
+      "salvador",
+      "pitti",
+      "buongiorno",
+    ];
+
+    function sortText(v: any) {
+      return String(v ?? "").trim().toLowerCase();
+    }
+
+    function sortNumber(v: any) {
+      const n = typeof v === "number" ? v : Number(v);
+      return Number.isFinite(n) ? n : 999999;
+    }
+
+    function normalizeExportBrand(v: any) {
+      const brand = sortText(v);
+
+      if (brand === "scandi") return "scandy";
+      if (brand === "scandy") return "scandy";
+
+      return brand;
+    }
+
+    function exportBrandIndex(v: any) {
+      const brand = normalizeExportBrand(v);
+      const index = BRAND_ORDER.indexOf(brand);
+      return index >= 0 ? index : 999;
+    }
+
+    function isSceneExportProduct(product: any) {
+      return (
+        sortText(product?.module) === "scene" ||
+        sortText(product?.slug).startsWith("scene-") ||
+        sortText(product?.sku).startsWith("scene-")
+      );
+    }
+
+    const products = Array.from(productMap.values()).sort((a: any, b: any) => {
+      const aScene = isSceneExportProduct(a);
+      const bScene = isSceneExportProduct(b);
+
+      // 1) Сначала карточки коллекций / scene наверху.
+      if (aScene && !bScene) return -1;
+      if (!aScene && bScene) return 1;
+
+      // 2) Дальше товары идут друг за другом по бренду.
+      const byBrand = exportBrandIndex(a?.brand) - exportBrandIndex(b?.brand);
+      if (byBrand !== 0) return byBrand;
+
+      // 3) Внутри бренда сохраняем обычный порядок через sortOrder.
+      const bySortOrder = sortNumber(a?.sortOrder) - sortNumber(b?.sortOrder);
+      if (bySortOrder !== 0) return bySortOrder;
+
+      // 4) Остальное — стабильная сортировка, чтобы файл не прыгал от выгрузки к выгрузке.
+      const byTitle = sortText(a?.title).localeCompare(sortText(b?.title), "ru");
+      if (byTitle !== 0) return byTitle;
+
+      const bySku = sortText(a?.sku).localeCompare(sortText(b?.sku), "ru");
+      if (bySku !== 0) return bySku;
+
+      return Number(a?.id ?? 0) - Number(b?.id ?? 0);
     });
 
     const workbook = new ExcelJS.Workbook();
@@ -1484,9 +1593,6 @@ export default {
     let exportedSetItems = 0;
 
     for (const p of products ?? []) {
-      if (p?.isActive === false) continue;
-      if (p?.isActiveUZ === false && p?.isActiveRU === false) continue;
-
       const parentSku = String(p.sku ?? "").trim();
       if (!parentSku) continue;
 
@@ -1550,11 +1656,6 @@ export default {
 
       for (const variant of sortedVariants) {
         if (!variant) continue;
-
-        if (variant.isActive === false) continue;
-        if (variant.isActiveUZ === false && variant.isActiveRU === false) {
-          continue;
-        }
 
         const color = variant.title || variant.color || "";
         if (!color) continue;
@@ -1633,9 +1734,6 @@ export default {
 
       for (const item of sortedSetItems) {
         if (!item) continue;
-
-        if (item.isActive === false) continue;
-        if (item.isActiveUZ === false && item.isActiveRU === false) continue;
 
         setItemsSheet.addRow({
           parentSku,
@@ -1732,7 +1830,7 @@ export default {
     };
 
     strapi.log.info(
-      `[EXCEL] export done: products=${exportedProducts}, variants=${exportedVariants}, setItems=${exportedSetItems}`,
+      `[EXCEL] export done: rawProducts=${Array.isArray(rawProducts) ? rawProducts.length : 0}, uniqueProducts=${products.length}, duplicatesSkipped=${duplicateProductsSkipped}, products=${exportedProducts}, variants=${exportedVariants}, setItems=${exportedSetItems}`,
     );
 
     const buffer = await workbook.xlsx.writeBuffer();
