@@ -811,6 +811,8 @@ function buildVariantData({
   const finalRUB = toNumOrNull(row.priceRUB);
   const dealerUZS = toNumOrNull(row.dealerPriceUZS);
   const dealerRUB = toNumOrNull(row.dealerPriceRUB);
+  const oldUZS = toNumOrNull(row.oldPriceUZS);
+  const oldRUB = toNumOrNull(row.oldPriceRUB);
 
   const activeUZ = toBoolOrNull(row.isActiveUZ);
   const activeRU = toBoolOrNull(row.isActiveRU);
@@ -842,6 +844,9 @@ function buildVariantData({
    */
   if (finalUZS !== null) data.priceDeltaUZS = Math.round(finalUZS);
   if (finalRUB !== null) data.priceDeltaRUB = Math.round(finalRUB);
+
+  if (oldUZS !== null) data.oldPriceUZS = Math.round(oldUZS);
+  if (oldRUB !== null) data.oldPriceRUB = Math.round(oldRUB);
 
   if (dealerUZS !== null) data.dealerPriceUZS = Math.round(dealerUZS);
   if (dealerRUB !== null) data.dealerPriceRUB = Math.round(dealerRUB);
