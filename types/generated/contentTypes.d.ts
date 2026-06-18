@@ -1372,6 +1372,8 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     material: Schema.Attribute.String;
     media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    model3dOriginalUrl: Schema.Attribute.String;
+    model3dUrl: Schema.Attribute.String;
     module: Schema.Attribute.String;
     oldPriceKZ: Schema.Attribute.Decimal;
     oldPriceRUB: Schema.Attribute.Integer;
@@ -1388,6 +1390,12 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer;
     stockQty: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    textureFiles: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    texturesArchiveFile: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
